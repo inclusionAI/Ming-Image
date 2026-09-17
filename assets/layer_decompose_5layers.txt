@@ -1,0 +1,8 @@
+Decompose this image into 5 layers with the following specifications:
+
+Number of layers: 5
+Layer 1: A large solid crimson-red circle in the upper-left quadrant, with a subtly uneven printed-like texture and no outline.
+Layer 2: A tall solid dark-green rectangular panel centered in the canvas, evenly filled with faint mottling and no border or visible text.
+Layer 3: A broad solid royal-blue isosceles triangle on the right, its sharp apex near the upper-middle area and flat base aligned close to the large green panel's bottom edge.
+Layer 4: A small solid golden-yellow square in the lower-left quadrant, with soft uneven fill texture, squared edges, and no text.
+Layer 5: Pale cool-gray canvas background spanning the whole composition, with a continuous dark charcoal-gray horizontal baseline running along the bottom edge behind the floating geometric shapes.

@@ -1,0 +1,8 @@
+{
+  "schema_version": 1,
+  "inference_profile": "layer_decompose",
+  "alignment_padding_mode": "learned",
+  "multi_frame_output": true,
+  "vae_input_channels": 4,
+  "vae_sample_mode": "argmax"
+}
