@@ -1,0 +1,8 @@
+{
+  "schema_version": 1,
+  "inference_profile": "generation_edit",
+  "alignment_padding_mode": "zero_masked",
+  "multi_frame_output": false,
+  "vae_input_channels": 4,
+  "vae_sample_mode": "argmax"
+}
