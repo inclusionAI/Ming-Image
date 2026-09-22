@@ -335,14 +335,16 @@ class DiffusionTransformer(ModelMixin, ConfigMixin, PeftAdapterMixin, FromOrigin
         super().__init__()
         if alignment_padding_mode not in VALID_PADDING_MODES:
             raise ValueError(
-                "alignment_padding_mode must be provided by inference_profile.json "
-                f"and be one of {sorted(VALID_PADDING_MODES)}, got "
-                f"{alignment_padding_mode!r}"
+                "alignment_padding_mode must come from the checkpoint capability "
+                "contract (transformer/config.json, or the legacy "
+                f"inference_profile.json) and be one of "
+                f"{sorted(VALID_PADDING_MODES)}, got {alignment_padding_mode!r}"
             )
         if type(multi_frame_output) is not bool:
             raise ValueError(
-                "multi_frame_output must be provided as a boolean by "
-                "inference_profile.json"
+                "multi_frame_output must come from the checkpoint capability "
+                "contract (transformer/config.json, or the legacy "
+                "inference_profile.json) as a boolean"
             )
         self.in_channels = in_channels
         self.out_channels = in_channels

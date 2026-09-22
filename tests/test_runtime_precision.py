@@ -10,7 +10,7 @@ from types import ModuleType, SimpleNamespace
 import unittest
 from unittest.mock import patch
 
-from inference_profile import InferenceProfile, load_inference_profile
+from inference_profile import InferenceProfile, load_checkpoint_capabilities
 
 try:
     import torch
@@ -121,7 +121,7 @@ class RuntimePrecisionTest(unittest.TestCase):
             "modeling_bailingmm2.py", {"load_image_gen_modules"},
             {"torch": torch, "nn": torch.nn, "RMSNorm": torch.nn.RMSNorm, "os": os,
              "logger": logging.getLogger(__name__),
-             "resolve_model_directory": Path, "load_inference_profile": load_inference_profile},
+             "resolve_model_directory": Path, "load_checkpoint_capabilities": load_checkpoint_capabilities},
             parent="BailingMM2NativeForConditionalGeneration",
         )
         holder = torch.nn.Module()
@@ -170,7 +170,7 @@ class RuntimePrecisionTest(unittest.TestCase):
         return load_definitions(
             "modeling_bailingmm2.py", {"load_image_gen_modules"},
             {"torch": torch, "nn": torch.nn, "RMSNorm": torch.nn.RMSNorm, "os": os,
-             "resolve_model_directory": Path, "load_inference_profile": load_inference_profile},
+             "resolve_model_directory": Path, "load_checkpoint_capabilities": load_checkpoint_capabilities},
             parent="BailingMM2NativeForConditionalGeneration",
         )
 

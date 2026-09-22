@@ -160,7 +160,7 @@ def transform_reference_images(
     if image_gen_input_channels not in (3, 4):
         raise ValueError(
             "image_gen_input_channels must be explicitly set to 3 or 4 "
-            "from inference_profile.json"
+            "from the checkpoint capability contract"
         )
     image_mode = "RGB" if image_gen_input_channels == 3 else "RGBA"
     images = [image.convert(image_mode) for image in images]

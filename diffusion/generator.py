@@ -135,7 +135,8 @@ class ImageGenerator(torch.nn.Module):
 
         if not isinstance(inference_profile, InferenceProfile):
             raise ValueError(
-                "inference_profile must be loaded from inference_profile.json"
+                "inference_profile must be derived from the checkpoint "
+                "capability contract (load_checkpoint_capabilities)"
             )
         self.inference_profile = inference_profile
 
@@ -169,15 +170,15 @@ class ImageGenerator(torch.nn.Module):
         self.vae.input_channels = 4 if ('input_channels' in self.vae.config and self.vae.config.input_channels == 4) or ('in_channels' in self.vae.config and self.vae.config.in_channels == 4) else 3
         if self.vae.input_channels != self.inference_profile.vae_input_channels:
             raise ValueError(
-                "VAE input channels do not match inference_profile.json: "
-                f"checkpoint={self.vae.input_channels}, "
-                f"profile={self.inference_profile.vae_input_channels}"
+                "VAE input channels do not match the checkpoint capability "
+                f"contract: checkpoint={self.vae.input_channels}, "
+                f"capability={self.inference_profile.vae_input_channels}"
             )
         if self.vae_sample_mode != self.inference_profile.vae_sample_mode:
             raise ValueError(
-                "VAE sample mode does not match inference_profile.json: "
-                f"checkpoint={self.vae_sample_mode}, "
-                f"profile={self.inference_profile.vae_sample_mode}"
+                "VAE sample mode does not match the checkpoint capability "
+                f"contract: checkpoint={self.vae_sample_mode}, "
+                f"capability={self.inference_profile.vae_sample_mode}"
             )
         
         # self.vae.to(self.torch_type).to(self.device)
@@ -189,6 +190,20 @@ class ImageGenerator(torch.nn.Module):
             alignment_padding_mode=self.inference_profile.alignment_padding_mode,
             multi_frame_output=self.inference_profile.multi_frame_output,
         )
+        if (
+            self.train_model.alignment_padding_mode
+            != self.inference_profile.alignment_padding_mode
+            or self.train_model.multi_frame_output
+            != self.inference_profile.multi_frame_output
+        ):
+            raise ValueError(
+                "instantiated Transformer capability does not match the "
+                "checkpoint capability contract: "
+                f"transformer=({self.train_model.alignment_padding_mode!r}, "
+                f"{self.train_model.multi_frame_output!r}), "
+                f"capability=({self.inference_profile.alignment_padding_mode!r}, "
+                f"{self.inference_profile.multi_frame_output!r})"
+            )
 
         self.train_model = ConditionedTransformer(self.train_model, vision_dim=vision_dim, use_identity_mlp=use_identity_mlp, text_encoder_norm=text_encoder_norm)
 

@@ -6,7 +6,7 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
-from infer import parse_args
+from infer import parse_args, resolve_task_resolution
 
 
 REPOSITORY = Path(__file__).resolve().parents[1]
@@ -32,6 +32,28 @@ class InferenceCliTest(unittest.TestCase):
         self.assertEqual(args.device, "cuda:0")
         self.assertEqual(args.device_map, "balanced")
         self.assertEqual(args.num_gpus, 1)
+        self.assertIsNone(args.resolution)
+
+    def test_task_resolution_defaults_and_snapping(self):
+        self.assertEqual(resolve_task_resolution("text-to-image", None), 2048)
+        self.assertEqual(resolve_task_resolution("text-to-image", 1200), 1024)
+        self.assertEqual(resolve_task_resolution("text-to-image", 1800), 2048)
+        self.assertEqual(resolve_task_resolution("text-to-image", 1536), 1024)
+
+        self.assertEqual(resolve_task_resolution("image-edit", None), 1024)
+        self.assertEqual(resolve_task_resolution("image-edit", 512), 1024)
+        self.assertEqual(resolve_task_resolution("image-edit", 2048), 1024)
+
+        self.assertEqual(resolve_task_resolution("layer-decompose", None), 1024)
+        self.assertEqual(resolve_task_resolution("layer-decompose", 600), 512)
+        self.assertEqual(resolve_task_resolution("layer-decompose", 900), 1024)
+        self.assertEqual(resolve_task_resolution("layer-decompose", 768), 512)
+
+    def test_task_resolution_rejects_non_positive_values(self):
+        for value in (0, -1):
+            with self.subTest(value=value):
+                with self.assertRaisesRegex(ValueError, "positive integer"):
+                    resolve_task_resolution("text-to-image", value)
 
     def test_validate_only_accepts_local_generation_checkpoint(self):
         temporary, model_directory = self._model_directory(
@@ -64,6 +86,9 @@ class InferenceCliTest(unittest.TestCase):
         payload = json.loads(result.stdout)
         self.assertEqual(payload["task"], "text-to-image")
         self.assertEqual(payload["sampling"], {"steps": 12, "cfg": 1.0})
+        self.assertEqual(
+            payload["resolution"], {"requested": None, "effective": 2048}
+        )
 
     def test_validate_only_accepts_long_literal_prompt(self):
         temporary, model_directory = self._model_directory(
@@ -134,6 +159,10 @@ class InferenceCliTest(unittest.TestCase):
         self.assertEqual(
             json.loads(default_result.stdout)["sampling"],
             {"steps": 12, "cfg": 2.0},
+        )
+        self.assertEqual(
+            json.loads(default_result.stdout)["resolution"],
+            {"requested": None, "effective": 1024},
         )
 
         override_result = subprocess.run(

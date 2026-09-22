@@ -1,9 +1,12 @@
 """Checkpoint capability contract for public Ming image inference.
 
-Every supported checkpoint must contain ``inference_profile.json`` at its
-root.  The profile is intentionally strict: selecting behavior from directory
-names, missing state-dict keys, or task names can silently load the wrong
-padding semantics and produce degraded images.
+New packages declare their capability in ``transformer/config.json`` via the
+``alignment_padding_mode`` / ``multi_frame_output`` pair; the VAE contract is
+derived from ``vae/config.json``. Legacy packages that predate the component
+metadata are loaded strictly from the root ``inference_profile.json`` during
+the compatibility window. The contract is intentionally strict: selecting
+behavior from directory names, missing state-dict keys, or task names can
+silently load the wrong padding semantics and produce degraded images.
 """
 
 from __future__ import annotations
@@ -217,6 +220,8 @@ class InferenceProfile:
 
 
 def load_inference_profile(model_directory: Union[str, Path]) -> InferenceProfile:
+    """Legacy parser: strict root ``inference_profile.json`` (see module doc)."""
+
     model_directory = Path(model_directory)
     profile_path = model_directory / PROFILE_FILENAME
     if not profile_path.is_file():
@@ -232,6 +237,152 @@ def load_inference_profile(model_directory: Union[str, Path]) -> InferenceProfil
     if not isinstance(raw, dict):
         raise InferenceProfileError("checkpoint inference profile must be a JSON object")
     return InferenceProfile.from_dict(raw)
+
+
+TRANSFORMER_CONFIG_FILENAME = "transformer/config.json"
+VAE_CONFIG_FILENAME = "vae/config.json"
+CAPABILITY_FIELDS = ("alignment_padding_mode", "multi_frame_output")
+QWEN_VAE_CLASS_NAME = "AutoencoderKLQwenImage"
+
+# The only valid capability pairs and the runtime family they select.
+CAPABILITY_PROFILES = {
+    (ZERO_MASKED_PADDING, False): GENERATION_PROFILE,
+    (LEARNED_PADDING, True): LAYER_PROFILE,
+}
+
+
+def _read_component_config(model_directory: Path, relative: str) -> Mapping[str, Any]:
+    config_path = model_directory / relative
+    if not config_path.is_file():
+        raise InferenceProfileError(
+            f"checkpoint is missing component config {relative}: {config_path}"
+        )
+    try:
+        raw = json.loads(config_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as error:
+        raise InferenceProfileError(
+            f"failed to read component config {config_path}: {error}"
+        ) from error
+    if not isinstance(raw, dict):
+        raise InferenceProfileError(f"component config {relative} must be a JSON object")
+    return raw
+
+
+def _derive_vae_contract(model_directory: Path) -> tuple[int, str]:
+    """(vae_input_channels, vae_sample_mode) from the VAE component config."""
+
+    config = _read_component_config(model_directory, VAE_CONFIG_FILENAME)
+    class_name = config.get("_class_name")
+    if class_name != QWEN_VAE_CLASS_NAME:
+        raise InferenceProfileError(
+            f"unsupported VAE contract: {VAE_CONFIG_FILENAME} _class_name must be "
+            f"{QWEN_VAE_CLASS_NAME!r} for argmax reference encoding, got "
+            f"{class_name!r}"
+        )
+    declared = [
+        config[key]
+        for key in ("input_channels", "in_channels")
+        if key in config
+    ]
+    if not declared:
+        raise InferenceProfileError(
+            f"{VAE_CONFIG_FILENAME} must declare input_channels or in_channels"
+        )
+    if len(set(declared)) != 1:
+        raise InferenceProfileError(
+            f"{VAE_CONFIG_FILENAME} input_channels and in_channels disagree: "
+            f"{declared}"
+        )
+    channels = declared[0]
+    if type(channels) is not int or channels != 4:
+        raise InferenceProfileError(
+            "the supported public families require a 4-channel VAE, got "
+            f"{channels!r} in {VAE_CONFIG_FILENAME}"
+        )
+    return channels, "argmax"
+
+
+def _profile_from_components(
+    model_directory: Path,
+    alignment_padding_mode: Any,
+    multi_frame_output: Any,
+) -> InferenceProfile:
+    if type(alignment_padding_mode) is not str:
+        raise InferenceProfileError(
+            f"{TRANSFORMER_CONFIG_FILENAME} alignment_padding_mode must be a "
+            f"string, got {alignment_padding_mode!r}"
+        )
+    if type(multi_frame_output) is not bool:
+        raise InferenceProfileError(
+            f"{TRANSFORMER_CONFIG_FILENAME} multi_frame_output must be a "
+            f"boolean, got {multi_frame_output!r}"
+        )
+    pair = (alignment_padding_mode, multi_frame_output)
+    if pair not in CAPABILITY_PROFILES:
+        raise InferenceProfileError(
+            f"unsupported capability pair {pair!r} in "
+            f"{TRANSFORMER_CONFIG_FILENAME}; expected one of "
+            f"{sorted(CAPABILITY_PROFILES)}"
+        )
+    channels, sample_mode = _derive_vae_contract(model_directory)
+    profile = InferenceProfile(
+        schema_version=PROFILE_SCHEMA_VERSION,
+        inference_profile=CAPABILITY_PROFILES[pair],
+        alignment_padding_mode=alignment_padding_mode,
+        multi_frame_output=multi_frame_output,
+        vae_input_channels=channels,
+        vae_sample_mode=sample_mode,
+    )
+    profile.validate()
+    return profile
+
+
+def load_checkpoint_capabilities(
+    model_directory: Union[str, Path],
+) -> InferenceProfile:
+    """Derive the runtime capability from component configs.
+
+    New packages declare ``alignment_padding_mode`` and
+    ``multi_frame_output`` in ``transformer/config.json``; legacy packages
+    without them fall back to the strict root ``inference_profile.json``.
+    A missing ``transformer/config.json`` means both fields are absent, so
+    the legacy path applies. A partial pair is a hard error. When both the
+    component fields and the legacy file exist, the component metadata is
+    authoritative and the legacy file may only agree with it.
+    """
+
+    model_directory = Path(model_directory)
+    transformer_path = model_directory / TRANSFORMER_CONFIG_FILENAME
+    transformer_config = (
+        _read_component_config(model_directory, TRANSFORMER_CONFIG_FILENAME)
+        if transformer_path.is_file()
+        else {}
+    )
+    present = [field for field in CAPABILITY_FIELDS if field in transformer_config]
+    if len(present) == 1:
+        raise InferenceProfileError(
+            f"{TRANSFORMER_CONFIG_FILENAME} carries only {present[0]!r}; "
+            "alignment_padding_mode and multi_frame_output must be declared "
+            "together"
+        )
+    if not present:
+        return load_inference_profile(model_directory)
+
+    profile = _profile_from_components(
+        model_directory,
+        transformer_config["alignment_padding_mode"],
+        transformer_config["multi_frame_output"],
+    )
+    legacy_path = model_directory / PROFILE_FILENAME
+    if legacy_path.is_file():
+        legacy = load_inference_profile(model_directory)
+        if legacy != profile:
+            raise InferenceProfileError(
+                f"component configs disagree with legacy {PROFILE_FILENAME}: "
+                f"transformer/vae derive {profile!r} but the profile declares "
+                f"{legacy!r}"
+            )
+    return profile
 
 
 def resolve_model_directory(

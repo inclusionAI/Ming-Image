@@ -6,12 +6,13 @@ from __future__ import annotations
 import argparse
 import json
 import re
+import sys
 from pathlib import Path
 from typing import Iterable, List
 
 from inference_profile import (
     VALID_TASKS,
-    load_inference_profile,
+    load_checkpoint_capabilities,
     resolve_model_directory,
 )
 from mllm_device_map import (
@@ -20,6 +21,17 @@ from mllm_device_map import (
     validate_loaded_layer_devices,
 )
 CODE_DIRECTORY = Path(__file__).resolve().parent
+
+TASK_RESOLUTION_BUCKETS = {
+    "text-to-image": (1024, 2048),
+    "image-edit": (1024,),
+    "layer-decompose": (512, 1024),
+}
+TASK_DEFAULT_RESOLUTIONS = {
+    "text-to-image": 2048,
+    "image-edit": 1024,
+    "layer-decompose": 1024,
+}
 
 
 def parse_args() -> argparse.Namespace:
@@ -35,7 +47,15 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--input-image", type=Path, help="Required for edit and layer decomposition")
     parser.add_argument("--num-layers", type=int, default=1)
     parser.add_argument("--output-dir", type=Path, default=Path("outputs"))
-    parser.add_argument("--resolution", type=int, default=512)
+    parser.add_argument(
+        "--resolution",
+        type=int,
+        help=(
+            "Requested resolution bucket. Defaults: text-to-image 2048, "
+            "image-edit 1024, layer-decompose 1024. Requests snap to the "
+            "nearest bucket supported by the selected task."
+        ),
+    )
     parser.add_argument(
         "--steps",
         type=int,
@@ -97,6 +117,19 @@ def parse_num_layers(text: str) -> int:
             except ValueError:
                 pass
     return 5
+
+
+def resolve_task_resolution(task: str, requested: int | None) -> int:
+    """Resolve a user request to the nearest supported task-level bucket."""
+    try:
+        buckets = TASK_RESOLUTION_BUCKETS[task]
+    except KeyError as exc:
+        raise ValueError(f"unsupported task for resolution policy: {task!r}") from exc
+    if requested is None:
+        return TASK_DEFAULT_RESOLUTIONS[task]
+    if isinstance(requested, bool) or not isinstance(requested, int) or requested <= 0:
+        raise ValueError("--resolution must be a positive integer")
+    return min(buckets, key=lambda value: (abs(value - requested), value))
 
 
 def _load_prompt(prompt: str) -> str:
@@ -206,7 +239,7 @@ def main() -> None:
         cache_dir=args.cache_dir,
         local_files_only=args.local_files_only,
     )
-    profile = load_inference_profile(model_directory)
+    profile = load_checkpoint_capabilities(model_directory)
 
     has_reference_image = args.input_image is not None
     profile.validate_task(
@@ -214,6 +247,13 @@ def main() -> None:
         has_reference_image=has_reference_image,
         num_layers=args.num_layers,
     )
+    effective_resolution = resolve_task_resolution(args.task, args.resolution)
+    if args.resolution is not None and args.resolution != effective_resolution:
+        print(
+            f"resolution {args.resolution} snapped to {effective_resolution} "
+            f"for task {args.task}",
+            file=sys.stderr,
+        )
     sampling = profile.resolve_sampling_parameters(steps=args.steps, cfg=args.cfg)
     if args.input_image is not None and not args.input_image.is_file():
         raise FileNotFoundError(f"input image does not exist: {args.input_image}")
@@ -233,6 +273,10 @@ def main() -> None:
                     "task": args.task,
                     "profile": profile.__dict__,
                     "sampling": sampling.__dict__,
+                    "resolution": {
+                        "requested": args.resolution,
+                        "effective": effective_resolution,
+                    },
                 },
                 indent=2,
             )
@@ -247,7 +291,7 @@ def main() -> None:
         task=args.task,
         prompt=prompt,
         input_image=args.input_image,
-        resolution=args.resolution,
+        resolution=effective_resolution,
         sampling=sampling,
         seed=args.seed,
         num_layers=num_layers,
@@ -327,6 +371,8 @@ def run_generation(
     """Run one inference with an already-loaded model and processor."""
     import torch
     from PIL import Image
+
+    resolution = resolve_task_resolution(task, resolution)
 
     messages = _build_messages(task, prompt, input_image)
     text = processor.apply_chat_template(messages, add_generation_prompt=True)

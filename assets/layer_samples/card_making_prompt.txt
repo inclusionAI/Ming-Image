@@ -1,0 +1,9 @@
+Decompose this image into 6 layers with the following specifications:
+
+Number of layers: 6
+Layer 1: Central text stack reading "WORLD", "Card Making", "DAY" in mixed gold and red fonts, plus "7TH OCTOBER" within a red outline box.
+Layer 2: Illustration at the top right showing hands crafting with paper, scissors, glue, and leaves.
+Layer 3: Illustrations at the bottom left and right corners featuring watercolor palettes, brushes, paint tubes, and splatters.
+Layer 4: Realistic red satin ribbon and bow tied vertically along the left side.
+Layer 5: Dark grey rounded rectangle serving as the main card surface, framed by a textured gold glitter border.
+Layer 6: Solid bright red background.

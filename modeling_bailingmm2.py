@@ -15,7 +15,7 @@ from transformers.utils import logging
 from configuration_bailingmm2 import BailingMM2Config
 from modeling_bailing_moe_v2 import BailingMoeV2ForCausalLM
 from bailingmm_utils import process_ratio, find_first_index_of_consecutive_ones, merge_consecutive_ones
-from inference_profile import load_inference_profile, resolve_model_directory
+from inference_profile import load_checkpoint_capabilities, resolve_model_directory
 import os
 from copy import deepcopy
 
@@ -142,9 +142,9 @@ class BailingMM2NativeForConditionalGeneration(PreTrainedModel):
                 expected_channels = self.inference_profile.vae_input_channels
                 if input_channels % expected_channels != 0:
                     raise ValueError(
-                        "reference image channels do not match inference_profile.json: "
-                        f"input={input_channels}, expected a multiple of "
-                        f"{expected_channels}"
+                        "reference image channels do not match the checkpoint "
+                        f"VAE contract: input={input_channels}, expected a "
+                        f"multiple of {expected_channels}"
                     )
             condition_embeds, negative_condition_embeds = None, None
             condition_embeds_2, negative_condition_embeds_2 = None, None
@@ -327,7 +327,7 @@ class BailingMM2NativeForConditionalGeneration(PreTrainedModel):
                 "Ming Image inference does not support a byt5 component; "
                 "the public checkpoint layout has no byt5/ directory."
             )
-        self.inference_profile = load_inference_profile(inference_model_path)
+        self.inference_profile = load_checkpoint_capabilities(inference_model_path)
         if device is not None:
             device = torch.device(device)
         elif self.model is not None:
