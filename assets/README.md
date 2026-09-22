@@ -48,11 +48,13 @@ The Layer sample uses one case prefix for its input, prompt, and decomposition
 strip. `card_making_decomposition.png` is the supplied source strip; it is not
 an individual RGBA layer file.
 
-## Repository README asset
+## Repository README and model-card asset
 
 `ming-image-design-ui-ux-leaderboard.webp` is the leaderboard image displayed
-in the repository README. It is a 2160x1978 lossless WebP conversion of the
-supplied PNG; its decoded RGBA pixels and dimensions are unchanged.
+in the repository README and copied byte-for-byte to the Design model
+repository as `assets/uiux_leaderboard.webp`. It is a 2160x1978 lossless WebP
+conversion of the supplied PNG; its decoded RGBA pixels and dimensions are
+unchanged. It is not used by the Layer model card.
 SHA-256: `2a7260a832cdbea85bf5284c9df2f74502c486bb8166be24f8a9247c9297884f`.
 
 ## Model-card assets
@@ -63,6 +65,7 @@ The files below are ready to copy without rebuilding or re-encoding:
 | --- | --- | --- | --- | --- |
 | `Ming-Image-0.1-Design` | `assets/model_cards/design_showcase.webp` | `assets/showcase.webp` | 2384x3960 | `9c08b25583d74295a2d34d519abd45544927b65d935581e40f0fcf1941c1da24` |
 | `Ming-Image-0.1-Design` | `assets/model_cards/design_transparency_showcase.webp` | `assets/transparency_showcase.webp` | 2384x808 | `2b2a18df09e051ca6c95bada87c99edac2ae917ab9da54d7ed32b328707f55c8` |
+| `Ming-Image-0.1-Design` | `assets/ming-image-design-ui-ux-leaderboard.webp` | `assets/uiux_leaderboard.webp` | 2160x1978 | `2a7260a832cdbea85bf5284c9df2f74502c486bb8166be24f8a9247c9297884f` |
 | `Ming-Image-0.1-Design-Layer` | `assets/model_cards/layer_showcase.webp` | `assets/showcase.webp` | 4096x552 | `a5e243217323e4233e6c7fd427814794739e0d3de44b0dbdcb1c55ca00399c1b` |
 
 The Design sheet contains all 15 T2I samples with no added labels or prompts.
