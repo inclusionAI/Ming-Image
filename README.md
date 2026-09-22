@@ -16,8 +16,6 @@ The series includes two 6B-parameter models:
 
 ## Gallery
 
-<sub>The first two showcases use Ming-Image-0.1-Design; the third uses Ming-Image-0.1-Design-Layer.</sub>
-
 ### Text-to-image
 
 ![Text-to-image showcase](assets/model_cards/design_showcase.webp)
@@ -29,6 +27,8 @@ The series includes two 6B-parameter models:
 ### Layer decomposition
 
 ![Six-layer card decomposition showcase](assets/model_cards/layer_showcase.webp)
+
+<sub>The first two showcases use Ming-Image-0.1-Design; the third uses Ming-Image-0.1-Design-Layer.</sub>
 
 ## Requirements
 
