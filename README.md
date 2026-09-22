@@ -230,6 +230,13 @@ Layer 2: <...>
 Layer N: <background/environment layer>"""
 ```
 
+## Deployment
+
+We recommend the following inference frameworks to serve the model:
+
+- vLLM-Omni: see the [recipes](https://github.com/vllm-project/vllm-omni/blob/main/recipes/inclusionAI/Ming-Image.md)
+  and [installation guide](https://docs.vllm.ai/projects/vllm-omni/en/latest/getting_started/quickstart/).
+
 ## Verification
 
 Fast contract tests do not require model weights:
