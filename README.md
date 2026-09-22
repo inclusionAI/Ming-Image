@@ -28,7 +28,13 @@ The series includes two 6B-parameter models:
 
 ![Six-layer card decomposition showcase](assets/model_cards/layer_showcase.webp)
 
-<sub>The first two showcases use Ming-Image-0.1-Design; the third uses Ming-Image-0.1-Design-Layer.</sub>
+![Layer-decomposition gallery](assets/model_cards/layer_gallery.webp)
+
+### Layer-decomposition performance
+
+![Layer-decomposition results on the Crello test set](assets/model_cards/layer_performance.webp)
+
+<sub>The first two showcases use Ming-Image-0.1-Design; the layer-decomposition examples and results use Ming-Image-0.1-Design-Layer.</sub>
 
 ## Requirements
 

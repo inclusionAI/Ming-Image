@@ -8,7 +8,8 @@ README and runnable demos.
 - [`ming-image-design-ui-ux-leaderboard.webp`](./ming-image-design-ui-ux-leaderboard.webp)
   is the UI/UX Design leaderboard graphic shown in the main README.
 - [`model_cards/`](./model_cards/) contains the image-only showcases used on
-  the Design and Layer model pages.
+  the Design and Layer model pages, including the Layer gallery and
+  performance result.
 - [`t2i_samples/`](./t2i_samples/) contains text-to-image examples. Its
   `transparent_rgba/` subdirectory contains examples with an alpha channel.
 - [`layer_samples/`](./layer_samples/) contains the input, layer specification,
