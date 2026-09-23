@@ -1,5 +1,21 @@
 # Ming Image 0.1 Design
 
+<p align="center">
+  <strong>Design</strong> ·
+  <a href="https://www.modelscope.cn/models/inclusionAI/Ming-Image-0.1-Design">🧩 ModelScope</a> |
+  <a href="https://huggingface.co/inclusionAI/Ming-Image-0.1-Design">🤗 Hugging Face</a> |
+  <a href="https://huggingface.co/spaces/hugging-apps/ming-image-0-1-design-demo">🖥️ Demo</a>
+  <br>
+  <strong>Layer</strong> ·
+  <a href="https://www.modelscope.cn/models/inclusionAI/Ming-Image-0.1-Design-Layer">🧩 ModelScope</a> |
+  <a href="https://huggingface.co/inclusionAI/Ming-Image-0.1-Design-Layer">🤗 Hugging Face</a> |
+  <a href="https://huggingface.co/spaces/Xiaolong-Wang/Ming-Image-0.1-Design-Layer">🖥️ Demo</a>
+  <br>
+  <a href="https://mp.weixin.qq.com/s/VGdtxfM8kbHIQJw50VD_Sw">📄 Blog</a> |
+  <a href="https://github.com/inclusionAI/ling-cookbook/tree/main/resources/recommended-skills/ling-ui-design">🎨 Design Skill</a> |
+  <a href="https://github.com/inclusionAI/ling-cookbook/tree/main/resources/recommended-skills/image-to-editable-ppt">📊 PPT Skill</a>
+</p>
+
 Ming-Image-0.1-Design is an open-source series for visual-design generation
 and editable layer decomposition.
 
@@ -31,6 +47,14 @@ The series includes two 6B-parameter models:
 ![Layer-decomposition gallery](assets/model_cards/layer_gallery.webp)
 
 ![Layer-decomposition results on the Crello test set](assets/model_cards/layer_performance.webp)
+
+## Use with skills
+
+- [Ling UI Design](https://github.com/inclusionAI/ling-cookbook/blob/main/resources/recommended-skills/ling-ui-design/README.md) uses generated visual references and layer decomposition to help an agent build and visually check UI code from a prompt or screenshot.
+- [Image to Editable PPT](https://github.com/inclusionAI/ling-cookbook/blob/main/resources/recommended-skills/image-to-editable-ppt/README.md) helps an agent recreate one generated page or slide image as an editable PowerPoint slide, with text and simple shapes converted to native elements.
+
+These are separate agent workflows; follow each skill's setup instructions for
+its dependencies and compatible model service.
 
 ## Requirements
 
