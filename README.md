@@ -1,20 +1,11 @@
 # Ming Image 0.1 Design
 
-<p align="center">
-  <strong>Design</strong> ·
-  <a href="https://www.modelscope.cn/models/inclusionAI/Ming-Image-0.1-Design">🧩 ModelScope</a> |
-  <a href="https://huggingface.co/inclusionAI/Ming-Image-0.1-Design">🤗 Hugging Face</a> |
-  <a href="https://huggingface.co/spaces/hugging-apps/ming-image-0-1-design-demo">🖥️ Demo</a>
-  <br>
-  <strong>Layer</strong> ·
-  <a href="https://www.modelscope.cn/models/inclusionAI/Ming-Image-0.1-Design-Layer">🧩 ModelScope</a> |
-  <a href="https://huggingface.co/inclusionAI/Ming-Image-0.1-Design-Layer">🤗 Hugging Face</a> |
-  <a href="https://huggingface.co/spaces/Xiaolong-Wang/Ming-Image-0.1-Design-Layer">🖥️ Demo</a>
-  <br>
-  <a href="https://mp.weixin.qq.com/s/VGdtxfM8kbHIQJw50VD_Sw">📄 Blog</a> |
-  <a href="https://github.com/inclusionAI/ling-cookbook/tree/main/resources/recommended-skills/ling-ui-design">🎨 Design Skill</a> |
-  <a href="https://github.com/inclusionAI/ling-cookbook/tree/main/resources/recommended-skills/image-to-editable-ppt">📊 PPT Skill</a>
-</p>
+| Model | Links |
+| --- | --- |
+| **Design** | [🧩 ModelScope](https://www.modelscope.cn/models/inclusionAI/Ming-Image-0.1-Design) · [🤗 Hugging Face](https://huggingface.co/inclusionAI/Ming-Image-0.1-Design) · [🖥️ Demo](https://huggingface.co/spaces/hugging-apps/ming-image-0-1-design-demo) |
+| **Layer** | [🧩 ModelScope](https://www.modelscope.cn/models/inclusionAI/Ming-Image-0.1-Design-Layer) · [🤗 Hugging Face](https://huggingface.co/inclusionAI/Ming-Image-0.1-Design-Layer) · [🖥️ Demo](https://huggingface.co/spaces/Xiaolong-Wang/Ming-Image-0.1-Design-Layer) |
+
+[📄 Blog](https://mp.weixin.qq.com/s/VGdtxfM8kbHIQJw50VD_Sw) · [🎨 Design Skill](https://github.com/inclusionAI/ling-cookbook/tree/main/resources/recommended-skills/ling-ui-design) · [📊 PPT Skill](https://github.com/inclusionAI/ling-cookbook/tree/main/resources/recommended-skills/image-to-editable-ppt)
 
 Ming-Image-0.1-Design is an open-source series for visual-design generation
 and editable layer decomposition.
