@@ -21,6 +21,11 @@ from configuration_bailing_moe_v2 import BailingMoeV2Config
 class BailingMM2Config(PretrainedConfig):
     model_type = "bailingmm_moe_v2_lite"
 
+    # Declaring the nested configs lets transformers forward an explicitly
+    # requested `_attn_implementation` (and `dtype`) from this top-level
+    # config into the vision/LLM sub-configs.
+    sub_configs = {"vision_config": Qwen2_5_VLVisionConfig, "llm_config": BailingMoeV2Config}
+
     def __init__(
         self,
         mlp_depth=1,
@@ -36,3 +41,19 @@ class BailingMM2Config(PretrainedConfig):
         self.llm_config = BailingMoeV2Config(**llm_config) if isinstance(llm_config, dict) else llm_config
         self.mlp_depth = mlp_depth
         super().__init__(**kwargs)
+
+    @property
+    def _attn_implementation(self):
+        return self._attn_implementation_internal
+
+    @_attn_implementation.setter
+    def _attn_implementation(self, value):
+        # None means "no implementation requested"; PretrainedConfig.__init__
+        # assigns it at construction time. Record it without touching the
+        # nested configs so their flash_attention_2 defaults survive.
+        # Explicit values go through the base setter, which recurses into the
+        # sub-configs declared above.
+        if value is None:
+            self._attn_implementation_internal = None
+            return
+        PretrainedConfig._attn_implementation.fset(self, value)

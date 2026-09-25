@@ -36,7 +36,14 @@ from transformers.utils import (
 from typing import Union
 
 from transformers.configuration_utils import PretrainedConfig
-import transformer_engine.pytorch as te
+
+try:
+    import transformer_engine.pytorch as te
+except (ImportError, OSError):
+    # Transformer Engine 1.11 reads flash-attn package metadata at import
+    # time, so flash-attn-free environments cannot import it at all. The
+    # vision tower only needs te.RMSNorm; a native fallback is defined below.
+    te = None
 
 if is_flash_attn_2_available():
     from flash_attn import flash_attn_varlen_func
@@ -158,7 +165,27 @@ class Qwen2_5_VisionRotaryEmbedding(nn.Module):
         new_inv_freq = 1.0 / (self.theta ** (torch.arange(0, self.dim, 2, dtype=torch.float) / self.dim))
         self.inv_freq.copy_(new_inv_freq)
 
-class Qwen2RMSNorm(te.RMSNorm):
+if te is not None:
+    _RMSNormImpl = te.RMSNorm
+else:
+
+    class _RMSNormImpl(nn.Module):
+        """Native RMSNorm used when Transformer Engine is unavailable."""
+
+        def __init__(self, hidden_size, eps=1e-6):
+            super().__init__()
+            self.weight = nn.Parameter(torch.ones(hidden_size))
+            self.variance_epsilon = eps
+
+        def forward(self, hidden_states):
+            input_dtype = hidden_states.dtype
+            hidden_states = hidden_states.float()
+            variance = hidden_states.pow(2).mean(-1, keepdim=True)
+            hidden_states = hidden_states * torch.rsqrt(variance + self.variance_epsilon)
+            return (self.weight * hidden_states).to(input_dtype)
+
+
+class Qwen2RMSNorm(_RMSNormImpl):
     def __init__(self, hidden_size, eps=1e-6):
         """
         Qwen2RMSNorm is equivalent to T5LayerNorm

@@ -28,7 +28,15 @@ import torch.nn.functional as F
 import torch.utils.checkpoint
 from torch import nn
 from torch.nn import CrossEntropyLoss
-import transformer_engine.pytorch as te
+
+try:
+    # Imported for parity with the training environment only; nothing in this
+    # file references `te`. Transformer Engine 1.11 reads flash-attn package
+    # metadata at import time, so tolerate it being unavailable in
+    # flash-attn-free installs.
+    import transformer_engine.pytorch as te  # noqa: F401
+except (ImportError, OSError):
+    te = None
 from transformers.activations import ACT2FN
 from transformers.cache_utils import Cache, DynamicCache
 from transformers.modeling_attn_mask_utils import (
