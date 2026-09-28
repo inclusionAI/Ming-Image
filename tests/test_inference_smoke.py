@@ -36,7 +36,6 @@ import unittest
 REPOSITORY = Path(__file__).resolve().parents[1]
 INFER = REPOSITORY / "infer.py"
 T2I_PROMPT = REPOSITORY / "assets" / "t2i_four_seasons_cabin_prompt.json"
-T2I_NATURAL_PROMPT = REPOSITORY / "assets" / "t2i_flow_landing_page_prompt.txt"
 IMAGE_EDIT_INPUT = REPOSITORY / "tests" / "assets" / "smoke_input.png"
 IMAGE_EDIT_PROMPT = "Change the background to blue"
 LAYER_INPUT = REPOSITORY / "assets" / "layer_samples" / "card_making_input.png"
@@ -46,13 +45,12 @@ LAYER_COUNT = 6
 
 class SmokeAssetContractTest(unittest.TestCase):
     def test_smoke_assets_are_present_and_well_formed(self):
-        for path in (T2I_PROMPT, T2I_NATURAL_PROMPT, IMAGE_EDIT_INPUT, LAYER_INPUT, LAYER_PROMPT):
+        for path in (T2I_PROMPT, IMAGE_EDIT_INPUT, LAYER_INPUT, LAYER_PROMPT):
             self.assertTrue(path.is_file(), path)
 
         with T2I_PROMPT.open(encoding="utf-8") as handle:
             structured_prompt = json.load(handle)
         self.assertEqual(set(structured_prompt), {"canvas_settings", "layers"})
-        self.assertIn("productivity app called Flow", T2I_NATURAL_PROMPT.read_text(encoding="utf-8"))
 
         layer_prompt = LAYER_PROMPT.read_text(encoding="utf-8")
         self.assertIn(f"Number of layers: {LAYER_COUNT}", layer_prompt)

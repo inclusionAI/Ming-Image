@@ -113,19 +113,13 @@ python infer.py --model inclusionAI/Ming-Image-0.1-Design --task text-to-image \
 
 ### Text-to-image demo
 
-You can start with a natural-language design brief. This [example from
-DeepInfra](https://deepinfra.com/blog/ming-design-with-ai) is saved as
-[`assets/t2i_flow_landing_page_prompt.txt`](assets/t2i_flow_landing_page_prompt.txt):
-
-```text
-Landing page for a productivity app called Flow. Clean minimal design, white background, generous whitespace. Top nav with the wordmark 'Flow' on the left and links Product, Pricing, Docs on the right. Centered hero with a bold headline 'Focus without the noise' and a subtle gray subheading. A single purple call-to-action button labeled 'Start free'. Below the hero, three feature cards with small icons, soft rounded corners and soft shadows. Modern sans-serif typography.
-```
+Natural-language example ([DeepInfra](https://deepinfra.com/blog/ming-design-with-ai)):
 
 ```bash
 python infer.py \
   --model inclusionAI/Ming-Image-0.1-Design \
   --task text-to-image \
-  --prompt assets/t2i_flow_landing_page_prompt.txt \
+  --prompt "Landing page for a productivity app called Flow. Clean minimal design, white background, generous whitespace. Top nav with the wordmark 'Flow' on the left and links Product, Pricing, Docs on the right. Centered hero with a bold headline 'Focus without the noise' and a subtle gray subheading. A single purple call-to-action button labeled 'Start free'. Below the hero, three feature cards with small icons, soft rounded corners and soft shadows. Modern sans-serif typography." \
   --width 2048 --height 2048 \
   --output-dir outputs/flow
 ```
