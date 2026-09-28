@@ -6,7 +6,7 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
-from infer import parse_args, resolve_task_resolution
+from infer import parse_args, resolve_t2i_size, resolve_task_resolution
 
 
 REPOSITORY = Path(__file__).resolve().parents[1]
@@ -33,6 +33,42 @@ class InferenceCliTest(unittest.TestCase):
         self.assertEqual(args.device_map, "balanced")
         self.assertEqual(args.num_gpus, 1)
         self.assertIsNone(args.resolution)
+        self.assertIsNone(args.width)
+        self.assertIsNone(args.height)
+
+    def test_t2i_size_pairs_keep_square_baselines_and_select_2k_bucket(self):
+        for width, height in (
+            (2048, 2048),
+            (2560, 1440),
+            (2432, 1824),
+            (1664, 2496),
+        ):
+            with self.subTest(size=(width, height)):
+                self.assertEqual(
+                    resolve_t2i_size("text-to-image", None, width, height),
+                    (width, height, 2048),
+                )
+        self.assertEqual(
+            resolve_t2i_size("text-to-image", None, 1024, 1024),
+            (1024, 1024, 1024),
+        )
+        self.assertEqual(
+            resolve_t2i_size("text-to-image", 2048, None, None),
+            (2048, 2048, 2048),
+        )
+
+    def test_t2i_size_rejects_partial_mixed_or_wrong_task(self):
+        for task, resolution, width, height in (
+            ("text-to-image", None, 2048, None),
+            ("text-to-image", None, None, 2048),
+            ("text-to-image", 2048, 2048, 2048),
+            ("text-to-image", None, 0, 2048),
+            ("text-to-image", None, 4096, 512),
+            ("layer-decompose", None, 2048, 2048),
+        ):
+            with self.subTest(args=(task, resolution, width, height)):
+                with self.assertRaises(ValueError):
+                    resolve_t2i_size(task, resolution, width, height)
 
     def test_task_resolution_defaults_and_snapping(self):
         self.assertEqual(resolve_task_resolution("text-to-image", None), 2048)
@@ -89,6 +125,37 @@ class InferenceCliTest(unittest.TestCase):
         self.assertEqual(
             payload["resolution"], {"requested": None, "effective": 2048}
         )
+        self.assertEqual(payload["output_size"], {"width": 2048, "height": 2048})
+
+    def test_validate_only_accepts_rectangular_t2i_size(self):
+        temporary, model_directory = self._model_directory(
+            {
+                "schema_version": 1,
+                "inference_profile": "generation_edit",
+                "alignment_padding_mode": "zero_masked",
+                "multi_frame_output": False,
+                "vae_input_channels": 4,
+                "vae_sample_mode": "argmax",
+            }
+        )
+        self.addCleanup(temporary.cleanup)
+        result = subprocess.run(
+            [
+                sys.executable, str(INFER),
+                "--model", str(model_directory),
+                "--task", "text-to-image",
+                "--prompt", "test",
+                "--width", "2560",
+                "--height", "1440",
+                "--validate-only",
+            ],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+        payload = json.loads(result.stdout)
+        self.assertEqual(payload["resolution"], {"requested": None, "effective": 2048})
+        self.assertEqual(payload["output_size"], {"width": 2560, "height": 1440})
 
     def test_validate_only_accepts_long_literal_prompt(self):
         temporary, model_directory = self._model_directory(

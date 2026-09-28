@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 import re
 import sys
 from pathlib import Path
@@ -51,11 +52,13 @@ def parse_args() -> argparse.Namespace:
         "--resolution",
         type=int,
         help=(
-            "Requested resolution bucket. Defaults: text-to-image 2048, "
-            "image-edit 1024, layer-decompose 1024. Requests snap to the "
-            "nearest bucket supported by the selected task."
+            "Legacy square-size / working-resolution bucket. For text-to-image, "
+            "prefer --width and --height; do not combine them with --resolution. "
+            "Image-edit and layer-decompose default to 1024."
         ),
     )
+    parser.add_argument("--width", type=int, help="Text-to-image output width in pixels (requires --height)")
+    parser.add_argument("--height", type=int, help="Text-to-image output height in pixels (requires --width)")
     parser.add_argument(
         "--steps",
         type=int,
@@ -130,6 +133,31 @@ def resolve_task_resolution(task: str, requested: int | None) -> int:
     if isinstance(requested, bool) or not isinstance(requested, int) or requested <= 0:
         raise ValueError("--resolution must be a positive integer")
     return min(buckets, key=lambda value: (abs(value - requested), value))
+
+
+def resolve_t2i_size(
+    task: str, resolution: int | None, width: int | None, height: int | None
+) -> tuple[int, int, int]:
+    """Return output (width, height) and the existing internal size bucket.
+
+    The paired-size path is additive: the legacy square --resolution path
+    remains unchanged, including the exact 2048 x 2048 smoke configuration.
+    """
+    if width is None and height is None:
+        bucket = resolve_task_resolution(task, resolution)
+        return bucket, bucket, bucket
+    if task != "text-to-image":
+        raise ValueError("--width and --height are supported only for text-to-image")
+    if width is None or height is None:
+        raise ValueError("--width and --height must be supplied together")
+    if resolution is not None:
+        raise ValueError("--resolution cannot be combined with --width and --height")
+    if any(type(value) is not int or value <= 0 for value in (width, height)):
+        raise ValueError("--width and --height must be positive integers")
+    if not 0.25 <= width / height <= 4.0:
+        raise ValueError("text-to-image width/height ratio must be between 1:4 and 4:1")
+    bucket = resolve_task_resolution(task, round(math.sqrt(width * height)))
+    return width, height, bucket
 
 
 def _load_prompt(prompt: str) -> str:
@@ -247,7 +275,9 @@ def main() -> None:
         has_reference_image=has_reference_image,
         num_layers=args.num_layers,
     )
-    effective_resolution = resolve_task_resolution(args.task, args.resolution)
+    output_width, output_height, effective_resolution = resolve_t2i_size(
+        args.task, args.resolution, args.width, args.height
+    )
     if args.resolution is not None and args.resolution != effective_resolution:
         print(
             f"resolution {args.resolution} snapped to {effective_resolution} "
@@ -266,18 +296,24 @@ def main() -> None:
         prompt = f"Decompose this image into {args.num_layers} layers."
     num_layers = parse_num_layers(prompt) if args.task == "layer-decompose" else args.num_layers
     if args.validate_only:
+        validation = {
+            "model": str(model_directory),
+            "task": args.task,
+            "profile": profile.__dict__,
+            "sampling": sampling.__dict__,
+            "resolution": {
+                "requested": args.resolution,
+                "effective": effective_resolution,
+            },
+        }
+        if args.task == "text-to-image":
+            validation["output_size"] = {
+                "width": output_width,
+                "height": output_height,
+            }
         print(
             json.dumps(
-                {
-                    "model": str(model_directory),
-                    "task": args.task,
-                    "profile": profile.__dict__,
-                    "sampling": sampling.__dict__,
-                    "resolution": {
-                        "requested": args.resolution,
-                        "effective": effective_resolution,
-                    },
-                },
+                validation,
                 indent=2,
             )
         )
@@ -292,6 +328,8 @@ def main() -> None:
         prompt=prompt,
         input_image=args.input_image,
         resolution=effective_resolution,
+        width=args.width,
+        height=args.height,
         sampling=sampling,
         seed=args.seed,
         num_layers=num_layers,
@@ -367,12 +405,16 @@ def run_generation(
     seed: int,
     num_layers: int,
     dtype,
+    width: int | None = None,
+    height: int | None = None,
 ) -> List:
     """Run one inference with an already-loaded model and processor."""
     import torch
     from PIL import Image
 
-    resolution = resolve_task_resolution(task, resolution)
+    output_width, output_height, resolution = resolve_t2i_size(
+        task, None if width is not None else resolution, width, height
+    )
 
     messages = _build_messages(task, prompt, input_image)
     text = processor.apply_chat_template(messages, add_generation_prompt=True)
@@ -389,6 +431,7 @@ def run_generation(
         videos=video_inputs,
         return_tensors="pt",
         image_gen_highres=resolution,
+        image_gen_aspect_ratio=(width / height if width is not None and width != height else None),
         image_gen_ref_images=reference_image,
         image_gen_input_channels=profile.vae_input_channels,
     )
@@ -408,6 +451,12 @@ def run_generation(
         num_frames_per_prompt=num_layers+1 if task == "layer-decompose" else num_layers,
     )
     images = _normalize_outputs(output)
+    if width is not None:
+        requested_size = (output_width, output_height)
+        images = [
+            image if image.size == requested_size else image.resize(requested_size, Image.Resampling.LANCZOS)
+            for image in images
+        ]
     expected_outputs = num_layers + 1 if task == "layer-decompose" else 1
     if len(images) != expected_outputs:
         raise RuntimeError(

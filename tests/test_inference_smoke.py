@@ -36,6 +36,7 @@ import unittest
 REPOSITORY = Path(__file__).resolve().parents[1]
 INFER = REPOSITORY / "infer.py"
 T2I_PROMPT = REPOSITORY / "assets" / "t2i_four_seasons_cabin_prompt.json"
+T2I_NATURAL_PROMPT = REPOSITORY / "assets" / "t2i_flow_landing_page_prompt.txt"
 IMAGE_EDIT_INPUT = REPOSITORY / "tests" / "assets" / "smoke_input.png"
 IMAGE_EDIT_PROMPT = "Change the background to blue"
 LAYER_INPUT = REPOSITORY / "assets" / "layer_samples" / "card_making_input.png"
@@ -45,12 +46,13 @@ LAYER_COUNT = 6
 
 class SmokeAssetContractTest(unittest.TestCase):
     def test_smoke_assets_are_present_and_well_formed(self):
-        for path in (T2I_PROMPT, IMAGE_EDIT_INPUT, LAYER_INPUT, LAYER_PROMPT):
+        for path in (T2I_PROMPT, T2I_NATURAL_PROMPT, IMAGE_EDIT_INPUT, LAYER_INPUT, LAYER_PROMPT):
             self.assertTrue(path.is_file(), path)
 
         with T2I_PROMPT.open(encoding="utf-8") as handle:
             structured_prompt = json.load(handle)
         self.assertEqual(set(structured_prompt), {"canvas_settings", "layers"})
+        self.assertIn("productivity app called Flow", T2I_NATURAL_PROMPT.read_text(encoding="utf-8"))
 
         layer_prompt = LAYER_PROMPT.read_text(encoding="utf-8")
         self.assertIn(f"Number of layers: {LAYER_COUNT}", layer_prompt)
@@ -67,7 +69,7 @@ def _smoke_output_root():
     "set MING_GENERATION_MODEL and MING_LAYER_MODEL",
 )
 class InferenceSmokeTest(unittest.TestCase):
-    def _run(self, *arguments, steps=2, resolution=None):
+    def _run(self, *arguments, steps=2, resolution=None, size=None):
         command = [
             sys.executable,
             str(INFER),
@@ -87,6 +89,8 @@ class InferenceSmokeTest(unittest.TestCase):
         ]
         if resolution is not None:
             command += ["--resolution", str(resolution)]
+        if size is not None:
+            command += ["--width", str(size[0]), "--height", str(size[1])]
         if steps is not None:
             command += ["--steps", str(steps)]
         subprocess.run(command, cwd=REPOSITORY, check=True)
@@ -147,14 +151,14 @@ class InferenceSmokeTest(unittest.TestCase):
             f"no alpha variation in showcase layer outputs: {alpha_ranges}",
         )
 
-    def _run_showcase_cases(self, root, *, steps, t2i_resolution, layer_resolution):
+    def _run_showcase_cases(self, root, *, steps, t2i_size, layer_resolution):
         self._run(
             "--model", self.generation_model,
             "--task", "text-to-image",
             "--prompt", T2I_PROMPT,
             "--output-dir", root / "text-to-image",
             steps=steps,
-            resolution=t2i_resolution,
+            size=t2i_size,
         )
         self._run(
             "--model", self.generation_model,
@@ -184,7 +188,7 @@ class InferenceSmokeTest(unittest.TestCase):
         self._run_showcase_cases(
             self._output_root("short"),
             steps=2,
-            t2i_resolution=1024,
+            t2i_size=(1024, 1024),
             layer_resolution=512,
         )
 
@@ -197,7 +201,7 @@ class InferenceSmokeTest(unittest.TestCase):
         self._run_showcase_cases(
             self._output_root("default"),
             steps=None,
-            t2i_resolution=2048,
+            t2i_size=(2048, 2048),
             layer_resolution=1024,
         )
 

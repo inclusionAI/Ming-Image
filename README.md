@@ -72,21 +72,23 @@ loaded. Use `--revision` to pin a branch, tag or commit. The examples use the
 published Hub IDs; replace them with local checkpoint directories for offline
 inference.
 
-Sampling defaults and public resolution buckets are task-specific:
+Sampling defaults and size inputs are task-specific:
 
-| Task | Steps | CFG | Resolution buckets | Default / recommended |
-| --- | ---: | ---: | --- | ---: |
-| Text-to-image | 12 | 1.0 | 1024, 2048 | 2048 |
-| Layer decomposition | 12 | 2.0 | 512, 1024 | 1024 |
+| Task | Steps | CFG | Size input | Default / recommended |
+| --- | ---: | ---: | --- | --- |
+| Text-to-image | 12 | 1.0 | `--width` + `--height` | `2048 × 2048` (default, 1:1); examples: `2560 × 1440` (16:9), `2432 × 1824` (4:3), `1664 × 2496` (2:3) |
+| Layer decomposition | 12 | 2.0 | `--resolution` working bucket | Input-image aspect ratio; 1024 bucket recommended, 512 faster |
 
 Pass `--steps` or `--cfg` to override either value explicitly.
-`--resolution` is optional. A supplied positive integer snaps to the nearest
-bucket supported by the selected task, with ties going to the smaller bucket.
-For faster layer decomposition, explicitly pass `--resolution 512`; use 1024
-for the recommended output quality. Text-to-image output is square at the
-selected bucket. Layer decomposition preserves the reference image's aspect
-ratio while selecting a predefined working size from the effective 1024 or
-512 bucket.
+For text-to-image, pass `--width` and `--height` together (width × height).
+The pairs above use existing 2048-level aspect-ratio buckets. Other positive
+size pairs within a 1:4–4:1 ratio are accepted: inference uses the nearest
+1024- or 2048-level internal size/aspect bucket and resizes the final image
+to the requested dimensions if needed. Omitting both gives `2048 × 2048`.
+Legacy square text-to-image calls may still use `--resolution`; do not combine
+it with `--width`/`--height`. For layer decomposition, `--resolution` remains a
+working-size selector (512 or 1024), while the output preserves the input
+image's aspect ratio.
 
 The default and minimum validated deployment is **one GPU with at least 80 GiB
 of memory**, running in BF16. This configuration passes both model families
@@ -105,14 +107,34 @@ without loading model weights:
 
 ```bash
 python infer.py --model inclusionAI/Ming-Image-0.1-Design --task text-to-image \
-  --prompt "A red circle on a white background" --validate-only
+  --prompt "A red circle on a white background" \
+  --width 2560 --height 1440 --validate-only
 ```
 
 ### Text-to-image demo
 
-This demo renders a fixed cabin across spring, summer, autumn, and winter. It
-uses the [exact structured JSON prompt](assets/t2i_four_seasons_cabin_prompt.json)
-without duplicating that long input in the README.
+You can start with a natural-language design brief. This [example from
+DeepInfra](https://deepinfra.com/blog/ming-design-with-ai) is saved as
+[`assets/t2i_flow_landing_page_prompt.txt`](assets/t2i_flow_landing_page_prompt.txt):
+
+```text
+Landing page for a productivity app called Flow. Clean minimal design, white background, generous whitespace. Top nav with the wordmark 'Flow' on the left and links Product, Pricing, Docs on the right. Centered hero with a bold headline 'Focus without the noise' and a subtle gray subheading. A single purple call-to-action button labeled 'Start free'. Below the hero, three feature cards with small icons, soft rounded corners and soft shadows. Modern sans-serif typography.
+```
+
+```bash
+python infer.py \
+  --model inclusionAI/Ming-Image-0.1-Design \
+  --task text-to-image \
+  --prompt assets/t2i_flow_landing_page_prompt.txt \
+  --width 2048 --height 2048 \
+  --output-dir outputs/flow
+```
+
+For better results, we recommend a Figma-style structured prompt
+and the corresponding [prompt enhancer](#text-to-image-prompt-rewriting).
+The established example below renders one cabin across four seasons using the
+[exact JSON prompt](assets/t2i_four_seasons_cabin_prompt.json); the long prompt
+stays in its file.
 
 ```bash
 python infer.py \
@@ -120,7 +142,7 @@ python infer.py \
   --task text-to-image \
   --prompt assets/t2i_four_seasons_cabin_prompt.json \
   --attn-implementation flash_attention_2 \
-  --resolution 2048 \
+  --width 2048 --height 2048 \
   --output-dir outputs/t2i
 ```
 
@@ -130,7 +152,8 @@ An instruction-following VLM can turn a short caption into a precise,
 layout-structured JSON description: Figma-style layers ordered back to front,
 with exact coordinates, hierarchy, color specs, and every rendered string
 quoted verbatim and owned exactly once. Unlike layer decomposition, the
-text-to-image rewriter describes the complete 1:1 canvas.
+text-to-image rewriter describes the complete requested canvas; set its
+`aspect_ratio` to match the chosen width and height.
 
 This rewrite is a pre-processing step *outside* `infer.py`. Prompt enhancement
 (PE) can use `Ling-3.0-flash-VL` or `qwen3.8-27B`; run it first, then pass its
