@@ -1,0 +1,49 @@
+# Dependency set verified end-to-end for the tinyv3 (bailing_moe_v3_vl) text
+# encoder on 2026-11-06, on a single NVIDIA L20Y (CUDA 12.4), Python 3.10.
+# This is the environment the branch reference outputs and alignment bundles
+# were produced with; it is a validated point, not a compatibility matrix.
+# This is a runtime version snapshot, not a single pip resolver target:
+# official Linux torch 2.5 wheels pin a different Triton. Use the staged
+# installation in README.md and requirements-tinyv3-base.txt.
+#
+# The miniv2 (bailingmm_moe_v2_lite) family also runs on this set.
+#
+# Hard requirements specific to tinyv3:
+#   * fla-core (KDA linear-attention kernels, imported as `fla`). There is no
+#     eager fallback: without it the model raises a clear ImportError at
+#     load time. Do NOT install fla-core[cuda] into an existing torch env
+#     blindly — resolve any torch/triton upgrade prompts before installing.
+#   * triton==3.8.0: required by the KDA kernels; also note that triton 3.8
+#     breaks torch 2.5 inductor compilation, so this codebase intentionally
+#     runs the vendored vision RoPE helper eagerly (see the NOTE in
+#     modeling_bailing_moe_v3_vl.py).
+#   * flash-attn>=2.6: the qwen3_moe_vit vision tower uses attention logit
+#     soft-capping; older flash-attn builds (e.g. 2.3.x) do not support it.
+#     The public CLI defaults tinyv3 to --attn-implementation sdpa; vision
+#     softcap support is a load-time requirement of the vision tower.
+torch==2.5.0
+torchvision==0.20.0
+transformers==4.57.1
+diffusers==0.36.0
+accelerate==0.33.0
+safetensors==0.5.2
+tokenizers==0.22.2
+huggingface-hub==0.34.0
+numpy==1.26.4
+Pillow==10.2.0
+pillow-avif-plugin==1.6.0
+requests==2.32.3
+tqdm==4.67.1
+typing-extensions==4.15.0
+sentencepiece==0.2.0
+protobuf==3.20.3
+timm==1.0.22
+einops==0.8.1
+ftfy==6.3.1
+regex==2024.11.6
+imageio==2.37.0
+opencv-python-headless==4.11.0.86
+triton==3.8.0
+fla-core==0.5.2
+flash-linear-attention==0.5.2
+flash-attn==2.7.4.post1

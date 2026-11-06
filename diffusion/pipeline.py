@@ -498,11 +498,30 @@ class ImageGenerationPipeline(DiffusionPipeline):
                     z = self.vae.encode(x).latent_dist.sample()
                 z = (z - self.vae.config.shift_factor) * self.vae.config.scaling_factor
                 ref_latents.append(z)
-            
+
             ref_hidden_states = torch.cat(ref_latents, dim=1)
-            
+
             if ref_hidden_states.dim() == 5:
                 ref_hidden_states = ref_hidden_states.squeeze(2)
+
+            # The public DiffusionTransformer expects the reference latent on
+            # the same latent grid as the generated image (it concatenates
+            # ref tokens with image tokens). When the caller supplies a
+            # reference whose latent grid differs from the requested output,
+            # resample it onto the output grid before token concatenation.
+            target_h, target_w = latents.shape[2], latents.shape[3]
+            if (
+                ref_hidden_states.shape[2] != target_h
+                or ref_hidden_states.shape[3] != target_w
+            ):
+                import torch.nn.functional as _F
+
+                ref_hidden_states = _F.interpolate(
+                    ref_hidden_states,
+                    size=(target_h, target_w),
+                    mode="bilinear",
+                    align_corners=False,
+                )
 
 
 

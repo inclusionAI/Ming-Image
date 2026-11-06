@@ -1,0 +1,24 @@
+{
+ "case": "t2i-fox-1024 seed=42 30steps cfg=1.0 (tinyv3 unified runtime)",
+ "files": {
+  "arrays.npz": {
+   "sha256": "3e75e4f3069e17b3b1e668709724b74edf96d68956fc616426469c898d93c732",
+   "size_bytes": 4195782
+  },
+  "case.json": {
+   "sha256": "b4808b7f29c892d242c165b6d85d6af25cb2dc6403b779252b823cdd0e71c23c",
+   "size_bytes": 2459
+  },
+  "reference.png": {
+   "sha256": "a76bca42076280de8c48dae8a8847e682274cb7291565e23bd45a06aa4b3576d",
+   "size_bytes": 1387761
+  }
+ },
+ "pixel_sha256": "150f1d15218b086864f8735f548d97950f8a8caee038e0ab0614315474b53865",
+ "pixel_shape": [
+  1024,
+  1024,
+  3
+ ],
+ "prompt_sha256": "5e596cf1c0d2e30d48a8878feac4d0dbd7ba4d926a1004c96e800030967902dd"
+}

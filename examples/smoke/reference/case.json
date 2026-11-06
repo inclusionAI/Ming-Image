@@ -1,0 +1,54 @@
+{
+ "case": {
+  "task": "text-to-image",
+  "prompt_sha256": "5e596cf1c0d2e30d48a8878feac4d0dbd7ba4d926a1004c96e800030967902dd",
+  "input_image": null,
+  "width": 1024,
+  "height": 1024,
+  "steps": 30,
+  "cfg": 1.0,
+  "seed": 42,
+  "dtype": "bfloat16",
+  "attn_implementation": null
+ },
+ "mllm_family": "tinyv3",
+ "profile": {
+  "inference_profile": "generation_edit",
+  "alignment_padding_mode": "zero_masked",
+  "multi_frame_output": false,
+  "vae_input_channels": 4,
+  "vae_sample_mode": "argmax"
+ },
+ "model": {
+  "config_hashes": {
+   "connector/config.json": "cc743612957ccbb78d9812e060e87fe096ea1c0f2ad63519b5eb49f249724f95",
+   "connector/generation_config.json": "cd5866254bd02b52464b75af06818afa882298a64d30a3819343a4fa4ed16ca9",
+   "mllm/config.json": "3819c45a1717f537700c392b05ea3f179a5cafc692193fe70e1f140a2b00bb85",
+   "mllm/generation_config.json": "cb4256a3513dc362a0c36a454fe20f716873cf462adcd5ac394f43aec165c395",
+   "mllm/model.safetensors.index.json": "803f3dbe40bc124da191871334e99c9c901a4dfa0538fd29612ca99630e32408",
+   "mllm/preprocessor_config.json": "c073bd743bf08b09f802315b8658be2724cfc69721b488854cc0de011d76d42f",
+   "mllm/special_tokens_map.json": "1c1ab5972c15bdff4a2c2f8b455dac00e515b0e650010d2d46efc201a27f4234",
+   "mllm/tokenizer_config.json": "d02c33b42bb4c7ed9105c9e9bf8c86015f891495d94e80226d45fc1d6c4fb2ed",
+   "mlp/config.json": "053765b719939a8b7b2ff631c1a3510efd007e95dd04316facbb58cd97273468",
+   "scheduler/scheduler_config.json": "79bd98cddf1a60d365f3072d713ffad832239f57c837bba0e9da3cff40bfafc5",
+   "transformer/config.json": "a042b8649365d4661d9616dae833e1312138303f310fe7a59f05e5cccd165886",
+   "transformer/diffusion_pytorch_model.safetensors.index.json": "51965cb3410e23bfaa6454bb27019c895c5401aeff6daaeb6deca3252f36c8d8",
+   "vae/config.json": "8db67ee46bb5810ed819d698a8acfc95936d157fe68b66c9ed16b2d5ea04413e"
+  }
+ },
+ "environment": {
+  "python": "3.10.15",
+  "torch": "2.5.0+cu124",
+  "cuda": "12.4",
+  "transformers": "4.57.1",
+  "diffusers": "0.36.0",
+  "gpu": "NVIDIA L20Y",
+  "fla-core": "0.5.2",
+  "flash-attn": "2.7.4.post1",
+  "triton": "3.8.0"
+ },
+ "notes": {
+  "initial_noise": "pre-scheduler Gaussian, fp32, drawn with torch.Generator(device).manual_seed(seed) identical to the runtime path",
+  "provenance": "fixed text-to-image capture from the unified runtime; this compact bundle contains token inputs, initial noise and final pixels, and omits condition tensors and per-step latents"
+ }
+}

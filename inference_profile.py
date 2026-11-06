@@ -57,6 +57,26 @@ DEFAULT_SAMPLING_PARAMETERS = {
     LAYER_PROFILE: SamplingParameters(steps=12, cfg=2.0),
 }
 
+# Sampling defaults per (MLLM family, capability profile). The capability
+# pair alone cannot select defaults: miniv2 generation and tinyv3 generation
+# are both zero_masked/false yet train with different step counts. The MLLM
+# family comes from the checkpoint's explicit model_type, never from the
+# padding pair, directory names, or tensor presence.
+FAMILY_MINIV2 = "miniv2"
+FAMILY_TINYV3 = "tinyv3"
+
+FAMILY_SAMPLING_PARAMETERS = {
+    (FAMILY_MINIV2, GENERATION_PROFILE): SamplingParameters(steps=12, cfg=1.0),
+    (FAMILY_MINIV2, LAYER_PROFILE): SamplingParameters(steps=12, cfg=2.0),
+    (FAMILY_TINYV3, GENERATION_PROFILE): SamplingParameters(steps=30, cfg=1.0),
+}
+
+MLLM_CONFIG_FILENAME = "mllm/config.json"
+KNOWN_MLLM_MODEL_TYPES = {
+    "bailingmm_moe_v2_lite": FAMILY_MINIV2,
+    "bailing_moe_v3_vl": FAMILY_TINYV3,
+}
+
 
 @dataclass(frozen=True)
 class InferenceProfile:
@@ -198,8 +218,19 @@ class InferenceProfile:
         *,
         steps: Optional[int] = None,
         cfg: Optional[float] = None,
+        family: Optional[str] = None,
     ) -> SamplingParameters:
-        defaults = DEFAULT_SAMPLING_PARAMETERS[self.inference_profile]
+        if family is not None:
+            key = (family, self.inference_profile)
+            defaults = FAMILY_SAMPLING_PARAMETERS.get(key)
+            if defaults is None:
+                raise InferenceProfileError(
+                    f"no sampling defaults registered for family={family!r}, "
+                    f"profile={self.inference_profile!r}; extend "
+                    "FAMILY_SAMPLING_PARAMETERS or pass steps/cfg explicitly"
+                )
+        else:
+            defaults = DEFAULT_SAMPLING_PARAMETERS[self.inference_profile]
         resolved_steps = defaults.steps if steps is None else steps
         resolved_cfg = defaults.cfg if cfg is None else cfg
 
@@ -217,6 +248,47 @@ class InferenceProfile:
             steps=resolved_steps,
             cfg=float(resolved_cfg),
         )
+
+
+def load_mllm_family(model_directory: Union[str, Path]) -> str:
+    """Return the MLLM family for this checkpoint.
+
+    Reads ``mllm/config.json`` (component layout) or ``config.json`` (legacy
+    flat layout) and looks up ``model_type``. Fail-closed rules:
+
+    * a declared but unknown ``model_type`` is a hard error — the checkpoint
+      claims a family this runtime does not implement;
+    * a package with no MLLM config at all predates the family concept and
+      can only be miniv2 (tinyv3 packages always ship their config); it is
+      treated as miniv2 while capability validation stays strict.
+    """
+    model_directory = Path(model_directory)
+    config_path = None
+    mllm_path = model_directory / MLLM_CONFIG_FILENAME
+    if mllm_path.is_file():
+        config_path = mllm_path
+    elif (model_directory / "config.json").is_file():
+        config_path = model_directory / "config.json"
+    if config_path is None:
+        return FAMILY_MINIV2
+    try:
+        raw = json.loads(config_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as error:
+        raise InferenceProfileError(
+            f"failed to read MLLM config {config_path}: {error}"
+        ) from error
+    model_type = raw.get("model_type")
+    if not isinstance(model_type, str):
+        raise InferenceProfileError(
+            f"{config_path} does not declare a string model_type"
+        )
+    family = KNOWN_MLLM_MODEL_TYPES.get(model_type)
+    if family is None:
+        raise InferenceProfileError(
+            f"unsupported MLLM model_type {model_type!r} in {config_path}; "
+            f"supported: {sorted(KNOWN_MLLM_MODEL_TYPES)}"
+        )
+    return family
 
 
 def load_inference_profile(model_directory: Union[str, Path]) -> InferenceProfile:

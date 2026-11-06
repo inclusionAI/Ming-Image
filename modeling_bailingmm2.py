@@ -26,6 +26,8 @@ logger = logging.get_logger(__name__)
 
 _CONFIG_FOR_DOC = "BailingMM2Config"
 
+MLLM_FAMILY = "miniv2"
+
 
 class BailingMM2NativeForConditionalGeneration(PreTrainedModel):
     config_class = BailingMM2Config
@@ -33,6 +35,24 @@ class BailingMM2NativeForConditionalGeneration(PreTrainedModel):
     supports_gradient_checkpointing = True
     _skip_keys_device_placement = "past_key_values"
     _supports_flash_attn_2 = True
+    mllm_family = MLLM_FAMILY
+
+    def iter_mllm_decoder_layers(self):
+        """Decoder layer modules (family-aware accessor for device checks)."""
+        return self.model.model.layers
+
+    def fixed_image_modules(self):
+        """Image-conditioning modules that must stay on the primary device."""
+        return {
+            "vision": self.vision,
+            "linear_proj": self.linear_proj,
+            "connector": getattr(self, "connector", None),
+            "proj_in": getattr(self, "proj_in", None),
+            "proj_out": getattr(self, "proj_out", None),
+            "proj_directvlm": getattr(self, "proj_directvlm", None),
+            "query_tokens": getattr(self, "query_tokens_dict", None),
+            "diffusion": getattr(self, "diffusion_loss", None),
+        }
 
     def __init__(
         self,
@@ -110,6 +130,8 @@ class BailingMM2NativeForConditionalGeneration(PreTrainedModel):
         image_gen_return_batch=False,
         image_gen_task=None,
         num_frames_per_prompt=1,
+        image_gen_latents=None,
+        image_gen_step_callback=None,
         **generate_kwargs,
     ):
         if audio_feats is not None or audio_feats_lengths is not None:
@@ -134,6 +156,7 @@ class BailingMM2NativeForConditionalGeneration(PreTrainedModel):
             sampling = self.inference_profile.resolve_sampling_parameters(
                 steps=image_gen_steps,
                 cfg=image_gen_cfg,
+                family=self.mllm_family,
             )
             image_gen_steps = sampling.steps
             image_gen_cfg = sampling.cfg
@@ -267,6 +290,9 @@ class BailingMM2NativeForConditionalGeneration(PreTrainedModel):
                 "encoder_hidden_states": condition_embeds,
                 "directvlm_hidden_states": condition_embeds_2,
                 "num_frames_per_prompt": num_frames_per_prompt,
+                # alignment-tool passthrough (None = unchanged behaviour)
+                "latents": image_gen_latents,
+                "callback_on_step_end": image_gen_step_callback,
             }
 
             image = self.diffusion_loss.sample(

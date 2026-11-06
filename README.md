@@ -1,273 +1,187 @@
-# Ming Image 0.1 Design
+# Ming Image — Unified Inference (tinyv3 branch)
 
-| Model | Links |
-| --- | --- |
-| **Design** | [🧩 ModelScope](https://www.modelscope.cn/models/inclusionAI/Ming-Image-0.1-Design) · [🤗 Hugging Face](https://huggingface.co/inclusionAI/Ming-Image-0.1-Design) · [🖥️ Demo](https://huggingface.co/spaces/hugging-apps/ming-image-0-1-design-demo) |
-| **Layer** | [🧩 ModelScope](https://www.modelscope.cn/models/inclusionAI/Ming-Image-0.1-Design-Layer) · [🤗 Hugging Face](https://huggingface.co/inclusionAI/Ming-Image-0.1-Design-Layer) · [🖥️ Demo](https://huggingface.co/spaces/Xiaolong-Wang/Ming-Image-0.1-Design-Layer) |
+This branch hosts the unified Ming Image 0.1 inference runtime with two
+interchangeable MLLM text encoders behind one CLI entry point (`infer.py`):
 
-[📄 Blog](https://mp.weixin.qq.com/s/VGdtxfM8kbHIQJw50VD_Sw) · [🎨 Design Skill](https://github.com/inclusionAI/ling-cookbook/tree/main/resources/recommended-skills/ling-ui-design) · [📊 PPT Skill](https://github.com/inclusionAI/ling-cookbook/tree/main/resources/recommended-skills/image-to-editable-ppt)
+| Family | `mllm/config.json` `model_type` | Checkpoints | Tasks |
+| --- | --- | --- | --- |
+| **tinyv3** (primary on this branch) | `bailing_moe_v3_vl` | unified Preview package (weights distributed separately — see below) | text-to-image, image-edit |
+| miniv2 (regression-covered) | `bailingmm_moe_v2_lite` | [Ming-Image-0.1-Design](https://huggingface.co/inclusionAI/Ming-Image-0.1-Design), [Ming-Image-0.1-Design-Layer](https://huggingface.co/inclusionAI/Ming-Image-0.1-Design-Layer) | text-to-image, image-edit, layer-decompose |
 
-Ming-Image-0.1-Design is an open-source series for visual-design generation
-and editable layer decomposition.
+The family is auto-detected from the checkpoint's own `mllm/config.json`;
+sampling defaults are family-specific and resolved from the checkpoint
+contract (tinyv3 generation: 30 steps / CFG 1.0; miniv2 generation: 12 / 1.0,
+layer: 12 / 2.0).
 
-The series includes two 6B-parameter models:
+**Verified environment:** single NVIDIA L20Y (81.5 GB), BF16, CUDA 12.4,
+Python 3.10, PyTorch 2.5.0. The inference commands and reference outputs were
+validated on this configuration. Real H800 and non-NVIDIA hardware have not
+been validated yet. Third parties targeting other hardware must run
+the alignment flow in [docs/ALIGNMENT.md](docs/ALIGNMENT.md) to establish
+numeric tolerances on their own stack; do not assume cross-hardware bitwise
+equality from a fixed seed.
 
-- [Ming-Image-0.1-Design](https://huggingface.co/inclusionAI/Ming-Image-0.1-Design)
-  generates complete visual designs for UI, infographics, posters, and
-  text-rich compositions.
-- [Ming-Image-0.1-Design-Layer](https://huggingface.co/inclusionAI/Ming-Image-0.1-Design-Layer)
-  decomposes flattened design images into independently editable transparent
-  layers.
+Measured on the verified L20Y configuration (reference only, do not
+extrapolate to other hardware): model load ≈ 30 s; a 30-step 1024×1024
+text-to-image sample ≈ 7 s; peak VRAM ≈ 35 GB.
 
-![Ming-Image-0.1-Design on the Artificial Analysis UI/UX Design leaderboard](assets/ming-image-design-ui-ux-leaderboard.webp)
+## Install
 
-## Gallery
-
-### Text-to-image
-
-![Text-to-image showcase](assets/model_cards/design_showcase.webp)
-
-### Transparent-background text-to-image
-
-![Transparent-background text-to-image showcase](assets/model_cards/design_transparency_showcase.webp)
-
-### Layer decomposition
-
-![Six-layer card decomposition showcase](assets/model_cards/layer_showcase.webp)
-
-![Layer-decomposition gallery](assets/model_cards/layer_gallery.webp)
-
-![Layer-decomposition results on the Crello test set](assets/model_cards/layer_performance.webp)
-
-## Use with skills
-
-- [Ling UI Design](https://github.com/inclusionAI/ling-cookbook/blob/main/resources/recommended-skills/ling-ui-design/README.md) uses generated visual references and layer decomposition to help an agent build and visually check UI code from a prompt or screenshot.
-- [Image to Editable PPT](https://github.com/inclusionAI/ling-cookbook/blob/main/resources/recommended-skills/image-to-editable-ppt/README.md) helps an agent recreate one generated page or slide image as an editable PowerPoint slide, with text and simple shapes converted to native elements.
-
-These are separate agent workflows; follow each skill's setup instructions for
-its dependencies and compatible model service.
-
-## Requirements
-
-- Python 3.10 or newer;
-- CUDA-capable PyTorch for full model inference;
-- a local checkpoint directory or a Hugging Face Hub repository ID.
-
-Install the runtime dependencies in a clean environment:
+Use an isolated Linux / Python 3.10 environment with a CUDA 12.4 toolkit and
+C++ compiler available for FlashAttention. Install the base dependencies
+before the KDA stack:
 
 ```bash
-pip install -r requirements.txt
+python3.10 -m venv .venv
+source .venv/bin/activate
+python -m pip install torch==2.5.0 torchvision==0.20.0 --index-url https://download.pytorch.org/whl/cu124
+python -m pip install -r requirements-tinyv3-base.txt packaging ninja psutil
+python -m pip install --no-deps triton==3.8.0 fla-core==0.5.2 flash-linear-attention==0.5.2
+python -m pip install --no-build-isolation --no-deps flash-attn==2.7.4.post1
 ```
 
-`flash_attention_2` is optional. The CLI defaults to `eager` attention because
-the LLM only implements eager and FlashAttention 2 attention classes; the
-diffusion transformer always uses PyTorch SDPA internally. Selecting
-`--attn-implementation sdpa` fails closed at load time.
+`requirements-tinyv3.txt` records the observed runtime versions. It is not a
+single resolver-compatible install target: the standard Linux PyTorch 2.5
+wheel pins an older Triton, while the reference KDA stack uses 3.8.0. The
+staged commands deliberately override that dependency in this isolated
+environment. GPU inference was validated on the recorded stack; a fresh
+installation of this recipe has not yet been validated.
 
-## Inference
+Hard requirements specific to the tinyv3 family:
 
-The `--model` argument accepts either a local directory or an HF Hub repo ID.
-Hub models are resolved to one immutable local snapshot before any component is
-loaded. Use `--revision` to pin a branch, tag or commit. The examples use the
-published Hub IDs; replace them with local checkpoint directories for offline
-inference.
+- **fla-core** (KDA linear-attention kernels, imported as `fla`). There is no
+  eager fallback: without these kernels the model fails at load time with an
+  explicit `ImportError`.
+- **triton==3.8.0** for the KDA kernels. Note triton 3.8 breaks torch 2.5
+  inductor compilation; this codebase therefore runs the vendored vision
+  RoPE helper eagerly by design (see the NOTE in
+  `modeling_bailing_moe_v3_vl.py`).
+- **flash-attn ≥ 2.6** (validated: 2.7.4.post1): the qwen3_moe_vit vision
+  tower uses attention logit soft-capping, which older flash-attn builds do
+  not support.
 
-Sampling defaults and size inputs are task-specific:
+Attention defaults: tinyv3 → `sdpa`; miniv2 → `eager` (its LLM only
+implements eager and FlashAttention 2 classes). `--attn-implementation`
+overrides either. Do not claim eager attention as a general KDA substitute —
+KDA always runs through the fla kernels.
 
-| Task | Steps | CFG | Size input | Default / recommended |
-| --- | ---: | ---: | --- | --- |
-| Text-to-image | 12 | 1.0 | `--width` + `--height` | `2048 × 2048` (default, 1:1); examples: `2560 × 1440` (16:9), `2432 × 1824` (4:3), `1664 × 2496` (2:3) |
-| Layer decomposition | 12 | 2.0 | `--resolution` working bucket | Input-image aspect ratio; 1024 bucket recommended, 512 faster |
-
-Pass `--steps` or `--cfg` to override either value explicitly.
-For text-to-image, pass `--width` and `--height` together (width × height).
-The pairs above use existing 2048-level aspect-ratio buckets. Other positive
-size pairs within a 1:4–4:1 ratio are accepted: inference uses the nearest
-1024- or 2048-level internal size/aspect bucket and resizes the final image
-to the requested dimensions if needed. Omitting both gives `2048 × 2048`.
-Legacy square text-to-image calls may still use `--resolution`; do not combine
-it with `--width`/`--height`. For layer decomposition, `--resolution` remains a
-working-size selector (512 or 1024), while the output preserves the input
-image's aspect ratio.
-
-The default and minimum validated deployment is **one GPU with at least 80 GiB
-of memory**, running in BF16. This configuration passes both model families
-end-to-end, and all demos below use it by default.
+To pin the code, check out this branch and record the commit:
 
 ```bash
-export CUDA_VISIBLE_DEVICES=0
+git checkout Ming-Image-0.1-Design_tinyv3
+git rev-parse HEAD   # pin this commit for reproducibility
 ```
 
-Select `--attn-implementation flash_attention_2` when FlashAttention 2 is
-installed; the portable CLI default remains `eager`.
+## Model directory
 
-For both tasks, `--prompt` accepts either raw text or a path to a prompt file.
-Use `--validate-only` to check the checkpoint contract and task combination
-without loading model weights:
+`--model` accepts a local directory or an HF Hub repo ID. The unified
+tinyv3 Preview package has this layout (component configs + weights; the
+same layout the released miniv2 packages use):
 
-```bash
-python infer.py --model inclusionAI/Ming-Image-0.1-Design --task text-to-image \
-  --prompt "A red circle on a white background" \
-  --width 2560 --height 1440 --validate-only
+```
+Ming-Image-0.1-Unified-Preview/TinyV3-sft1024-iter1000/
+├── mllm/            # bailing_moe_v3_vl MLLM (config.json declares model_type)
+├── connector/       # query-token connector for image generation
+├── mlp/             # direct-VLM condition projection
+├── scheduler/
+├── transformer/     # DiffusionTransformer + capability metadata
+├── vae/             # 4-channel AutoencoderKLQwenImage (argmax encoding)
+└── config.json
 ```
 
-### Text-to-image demo
+The tinyv3 weights are **not** downloadable from this repository or a public
+Hub repo at this time: obtain the complete unified package through the
+distribution channel you were given and pass its local path to `--model`.
+The released miniv2 Hub repos above work unchanged.
 
-Natural-language example ([DeepInfra](https://deepinfra.com/blog/ming-design-with-ai)):
+## Run
+
+Validate a checkpoint and task combination without loading weights:
 
 ```bash
-python infer.py \
-  --model inclusionAI/Ming-Image-0.1-Design \
-  --task text-to-image \
-  --prompt "Landing page for a productivity app called Flow. Clean minimal design, white background, generous whitespace. Top nav with the wordmark 'Flow' on the left and links Product, Pricing, Docs on the right. Centered hero with a bold headline 'Focus without the noise' and a subtle gray subheading. A single purple call-to-action button labeled 'Start free'. Below the hero, three feature cards with small icons, soft rounded corners and soft shadows. Modern sans-serif typography." \
-  --width 2048 --height 2048 \
-  --output-dir outputs/flow
+python infer.py --model /path/to/model --task text-to-image \
+  --prompt "A red circle on a white background" --width 1024 --height 1024 \
+  --validate-only
 ```
 
-For better results, we recommend a Figma-style structured prompt
-and the corresponding [prompt enhancer](#text-to-image-prompt-rewriting).
-The established example below renders one cabin across four seasons using the
-[exact JSON prompt](assets/t2i_four_seasons_cabin_prompt.json); the long prompt
-stays in its file.
+Text-to-image (full reference case; the prompt stays in its fixture file so
+no one hand-copies UTF-8 text):
 
 ```bash
-python infer.py \
-  --model inclusionAI/Ming-Image-0.1-Design \
-  --task text-to-image \
-  --prompt assets/t2i_four_seasons_cabin_prompt.json \
-  --attn-implementation flash_attention_2 \
-  --width 2048 --height 2048 \
+python infer.py --model /path/to/model --task text-to-image \
+  --prompt examples/smoke/t2i_fox_prompt.txt \
+  --width 1024 --height 1024 --steps 30 --seed 42 \
   --output-dir outputs/t2i
 ```
 
-### Text-to-image prompt rewriting
-
-An instruction-following VLM can turn a short caption into a precise,
-layout-structured JSON description: Figma-style layers ordered back to front,
-with exact coordinates, hierarchy, color specs, and every rendered string
-quoted verbatim and owned exactly once. Unlike layer decomposition, the
-text-to-image rewriter describes the complete requested canvas; set its
-`aspect_ratio` to match the chosen width and height.
-
-This rewrite is a pre-processing step *outside* `infer.py`. Prompt enhancement
-(PE) can use `Ling-3.0-flash-VL` or `qwen3.8-27B`; run it first, then pass its
-output to `--prompt` as raw text or via an asset file.
-
-The released system prompt is stored in
-[`assets/t2i_rewriter_system_prompt.txt`](assets/t2i_rewriter_system_prompt.txt)
-and reproduced below:
-
-```text
-You are a senior visual designer and image-prompt engineer. Expand the user's request into one precise, high-resolution Figma-style caption. Return only one JSON object.
-
-Use exactly two top-level keys. `canvas_settings` contains exactly `aspect_ratio`, `ambient_lighting`, and `image_style`. `layers` lists visible groups from background to topmost overlay. Every layer contains exactly `description`, `coordinates`, `hierarchy_and_relation`, and `color_specs`; `color_specs` is an array of hex colors.
-
-`coordinates` MUST be one string, never an object or array, in exactly this form: `"cx: 0.500, cy: 0.500, w: 1.000, h: 1.000"`. Values are normalized; each bbox encloses its complete owned object and stays inside the canvas.
-
-A layer is one selectable visible semantic group: background, full person, coherent object, panel, card, row, or text block. Prefer the fewest groups that preserve the layout. Keep people and objects intact. Never create invisible parents, guides, placeholders, empty layers, duplicate summaries, or multiple owners for one element.
-
-Preserve every user-supplied rendered string character-for-character and as one contiguous string. Unless multiple visible copies are requested, it must occur exactly once across all `description` fields and zero times in `hierarchy_and_relation`. Quote it only where describing its visible rendering; refer to the related subject elsewhere with unquoted semantic wording. Enumerate intended copy, invent extra copy sparingly, and never hide content behind "other text", "remaining labels", or "etc."
-
-Describe concrete composition, typography, materials, texture, lighting, pose, and camera treatment without literary filler. Use `hierarchy_and_relation` only for ownership, alignment, containment, stacking, and occlusion.
-
-Infer structured layouts first. Use one complete layer per card and state its row and column. A compact secondary table may be one layer only if every header and cell is listed; otherwise use a visible shared frame when present, one complete header, and one complete layer per body row, binding values to columns and stating blanks. Enumerate sequences, schedules, spans, gaps, and vacant tracks in visual order. Do not mistake ordinary alignment for a table.
-
-Silently verify schema, string coordinates, Z-order, exact-text counts, geometry, bbox validity, and completeness.
-```
-
-### Transparent-background generation tip
-
-To generate an image with an alpha channel, choose exactly one of the following
-fixed phrases and place it at the beginning of the prompt. Do not combine
-multiple prefixes.
-
-- `带透明通道，4通道RGBA图像`
-- `透明背景，alpha通道，无底图`
-- `抠图素材，背景alpha=0`
-- `孤立主体，透明PNG图层`
-- `不要白底，不要棋盘格，只要透明通道`
-- `RGBA, 4-channel, transparent background`
-- `isolated subject, alpha matte, no background`
-- `cutout PNG, alpha=0 outside the object`
-- `transparent canvas, not white, not checkerboard`
-- `production RGBA layer for compositing`
-
-### Layer-decomposition demo
-
-This example separates the flattened card design into six transparent RGBA
-layers. See the [source input](assets/layer_samples/card_making_input.png) and
-the [exact six-layer specification](assets/layer_samples/card_making_prompt.txt).
+Short connectivity smoke (2 steps; passing only means the path runs — it is
+not a numeric acceptance run):
 
 ```bash
-python infer.py \
-  --model inclusionAI/Ming-Image-0.1-Design-Layer \
-  --task layer-decompose \
-  --input-image assets/layer_samples/card_making_input.png \
-  --prompt assets/layer_samples/card_making_prompt.txt \
-  --attn-implementation flash_attention_2 \
-  --resolution 1024 \
-  --output-dir outputs/layers
+python infer.py --model /path/to/model --task text-to-image \
+  --prompt examples/smoke/t2i_fox_prompt.txt \
+  --width 1024 --height 1024 --steps 2 --seed 42 \
+  --output-dir outputs/smoke
 ```
 
-The layer count is parsed from a "Decompose this image into N layers" or
-"Number of layers: N" specification in the prompt. When `--prompt` is omitted,
-`--num-layers N` generates the default request `Decompose this image into N
-layers.`
+Image edit (output size follows the reference-image bucket; do not pass
+`--width`/`--height`):
 
-The layer model returns the requested layers plus one leading
-composite/full-canvas image. The CLI skips that first image and saves the
-standalone layers as `layer_01.png`, `layer_02.png`, and so on.
-
-### Layer-decomposition prompt rewriting
-
-Layer decomposition is driven by an explicit per-layer specification, not a
-free-form caption. The reference pipeline first runs a prompt enhancer: an
-instruction-following VLM rewrites the user's rough layer plan into a precise
-decomposition — concrete colors/positions/shapes per layer, real text quoted
-verbatim on its own front layer, a text-supporting card/panel/badge/banner as
-its own layer directly behind the text, the main subject as its own layer, and
-the background last absorbing the remaining supports and surfaces.
-
-This rewrite is a pre-processing step *outside* `infer.py`: run the enhancer
-first, then pass its output to `--prompt` (as raw text or via an asset file).
-The enhancer's output is exactly the format this CLI parses — it regenerates the
-"Decompose this image into N layers" / "Number of layers: N" spec, so the layer
-count flows through the same `--prompt` parsing path described above.
-
-Prompt enhancement (PE) can use `Ling-3.0-flash-VL` or `qwen3.8-27B` as the
-instruction-following VLM. The guided prompt below is part of the released
-pipeline and is kept here for reproducibility:
-
-```text
-GUIDED_PROMPT = """You are a graphic-design layer-decomposition expert. You are given ONE flattened design image and a ROUGH layer plan from the user. Rewrite the rough plan into a precise layer decomposition that matches the image.
-
-User's rough layer plan:
-{spec}
-
-Guidelines:
-- Follow the user's plan EXACTLY: use the same number of layers and the same per-layer role/meaning, in the same order. Layer 1 is the FRONT-most (topmost); the last layer is the background/environment. Stacking the layers back-to-front must reproduce the image.
-- For each layer, write a concrete one-or-two-sentence description grounded in the image: real colors, positions and shapes.
-- TEXT goes in the front layer(s); quote any real text VERBATIM in double quotes and keep its original language (do not translate).
-- A text-supporting CARD / PANEL / BADGE / BANNER is its OWN layer directly behind the text — do not merge it into the text layer or into the background.
-- The MAIN SUBJECT (hero product/photo/illustration) is its own layer.
-- The BACKGROUND/ENVIRONMENT is the LAST layer and ABSORBS supporting props and surfaces under the subject (tables, boards, plates, floors, shadows, gradients, patterns) — these are NOT separate layers.
-
-Write the description DIRECTLY about the content; do NOT mention "image" or narrate your reasoning. Output EXACTLY in this format and NOTHING else (N = the number of layers in the user's plan):
-
-Decompose this image into N layers with the following specifications:
-
-Number of layers: N
-Layer 1: <front-most layer>
-Layer 2: <...>
-Layer N: <background/environment layer>"""
+```bash
+python infer.py --model /path/to/model --task image-edit \
+  --input-image tests/assets/smoke_input.png \
+  --prompt examples/smoke/edit_prompt.txt --steps 30 --seed 42 \
+  --output-dir outputs/edit
 ```
 
-## Deployment
+## Reference outputs and alignment
 
-We recommend the following inference frameworks to serve the model:
+Fixed-input reference bundles live in `examples/smoke/reference/` (token
+inputs, replay noise, final pixels, hashes). To check your build against
+them, capture the same case and compare segment by segment:
 
-- vLLM-Omni: see the [recipes](https://github.com/vllm-project/vllm-omni/blob/main/recipes/inclusionAI/Ming-Image.md)
-  and [installation guide](https://docs.vllm.ai/projects/vllm-omni/en/latest/getting_started/quickstart/).
+```bash
+python tools/capture_case.py --model /path/to/model --task text-to-image \
+  --prompt examples/smoke/t2i_fox_prompt.txt \
+  --width 1024 --height 1024 --steps 30 --seed 42 \
+  --output-dir /tmp/fox-capture
+python tools/compare_case.py \
+  --reference examples/smoke/reference --candidate /tmp/fox-capture
+```
+
+`compare_case.py` exits 0 when every available checked segment passes: token
+IDs and initial noise must match exactly; the final image is compared by
+pixel MAE/RMSE. Omitted condition/latent tensors are marked `absent` and
+excluded from that verdict; a full per-step comparison is marked
+`needs_review`. A passing public smoke comparison does not certify those
+segments or a new hardware backend. See
+[docs/ALIGNMENT.md](docs/ALIGNMENT.md) for the full protocol, threshold
+basis, and known limitations.
+
+| Case | Input | Size | Steps / CFG / seed | Output | Compare result |
+| --- | --- | --- | --- | --- | --- |
+| Text-to-image | `examples/smoke/t2i_fox_prompt.txt` | 1024×1024 | 30 / 1.0 / 42 | [reference.png](examples/smoke/reference/reference.png) | replay noise exact; pixel MAE 0.0 vs bundle on the verified L20Y stack |
+| Image edit | `tests/assets/smoke_input.png` + `examples/smoke/edit_prompt.txt` | 768×512 (ref bucket) | 30 / 1.0 / 42 | [edit/reference.png](examples/smoke/reference/edit/reference.png) | replay noise exact; pixel MAE 0.0 vs bundle on the verified L20Y stack |
+
+![Text-to-image reference output](examples/smoke/reference/reference.png)
+
+![Image-edit reference output](examples/smoke/reference/edit/reference.png)
+
+## miniv2 compatibility
+
+The released Design / Design-Layer checkpoints run unchanged on this branch;
+their original usage (including layer decomposition, transparent-background
+prompt prefixes, and the structured-prompt workflow) is documented on
+[`main`](https://github.com/inclusionAI/Ming-Image/tree/main). Family-specific
+behavior on this branch:
+
+| Aspect | tinyv3 | miniv2 |
+| --- | --- | --- |
+| Attention default | `sdpa` | `eager` |
+| Generation steps / CFG | 30 / 1.0 | 12 / 1.0 |
+| Layer-decompose | not supported (hard error) | 12 steps / CFG 2.0 |
+| KDA / fla kernels | required | not used |
+| Output size for image-edit | follows reference bucket | follows reference bucket |
 
 ## Verification
 
@@ -276,20 +190,25 @@ Fast contract tests do not require model weights:
 ```bash
 python -m unittest -v tests.test_inference_profile
 python -m unittest -v tests.test_padding
+python -m unittest -v tests.test_unified_runtime
+python -m unittest -v tests.test_compare_case
 ```
 
-Full inference is a GPU smoke test and requires both checkpoint families. At a
-minimum, validate the four-seasons-cabin text-to-image case and the six-layer
-card-making decomposition case with fixed seeds. The smoke test defaults to
-the single-GPU placement and FlashAttention 2 configuration shown above:
+The alignment tools themselves are covered by the last two modules. A GPU
+smoke test with both checkpoint families fixed:
 
 ```bash
 export CUDA_VISIBLE_DEVICES=0
-export MING_GENERATION_MODEL=inclusionAI/Ming-Image-0.1-Design
-export MING_LAYER_MODEL=inclusionAI/Ming-Image-0.1-Design-Layer
+export MING_GENERATION_MODEL=/path/to/design-checkpoint
+export MING_LAYER_MODEL=/path/to/design-layer-checkpoint
 export MING_SMOKE_OUTPUT_DIR=/path/to/persistent/results
 python -m unittest -v tests.test_inference_smoke.InferenceSmokeTest.test_two_step_showcase_smoke
 ```
+
+## Deployment
+
+- vLLM-Omni: see the [recipes](https://github.com/vllm-project/vllm-omni/blob/main/recipes/inclusionAI/Ming-Image.md)
+  and [installation guide](https://docs.vllm.ai/projects/vllm-omni/en/latest/getting_started/quickstart/).
 
 ## Checkpoint contract
 
@@ -297,7 +216,7 @@ Each checkpoint declares its runtime capability in `transformer/config.json`:
 
 | Family | `alignment_padding_mode` | `multi_frame_output` |
 | --- | --- | ---: |
-| Text-to-image | `"zero_masked"` | `false` |
+| Text-to-image / image-edit | `"zero_masked"` | `false` |
 | Layer decomposition | `"learned"` | `true` |
 
 Both fields must be present together, and the VAE component must be the

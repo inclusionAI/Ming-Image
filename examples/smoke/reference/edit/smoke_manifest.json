@@ -1,0 +1,28 @@
+{
+ "case": "edit-autumn seed=42 30steps cfg=1.0 (tinyv3 unified runtime)",
+ "files": {
+  "arrays.npz": {
+   "sha256": "414f807a7611ef8e737f1a09a78154596b1938029ed9f164a88413d4561bc111",
+   "size_bytes": 1580502
+  },
+  "case.json": {
+   "sha256": "e6d4d587ba5c98675d1ae1ae31ec282d37340a13c6c2d1c2110ae306f4e13400",
+   "size_bytes": 2600
+  },
+  "reference.png": {
+   "sha256": "6c19dc9a715b5b98b8e38fac3c0048c3ea6c84527b0e3f3292e11789c844bc55",
+   "size_bytes": 686810
+  }
+ },
+ "pixel_sha256": "148121a205ea41bbb88b953dc5842c538c496ce708663fd2d1e03959192c93e3",
+ "pixel_shape": [
+  512,
+  768,
+  3
+ ],
+ "prompt_sha256": "b5d8f0c493545aff99311b2c63f82b329a1ff045d89cb0394e2f70b0723c3fc2",
+ "input_image": {
+  "name": "smoke_input.png",
+  "sha256": "d5d02c0618be0e4e13dc74f14bc8376396d0a9ed3c06152d3a78ed35485de019"
+ }
+}

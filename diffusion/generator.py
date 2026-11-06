@@ -251,7 +251,7 @@ class ImageGenerator(torch.nn.Module):
         logger.info(f"number of all Diffusion parameters: {num_parameters}, trainable: {num_parameters_trainable}")
     
 
-    def sample(self, encoder_hidden_states, steps=None, cfg=None, cfg_mode=1, seed=42, height=512, width=512, use_dynamic_shifting=False, extra_vit_input=None, ref_x=None, directvlm_hidden_states=None, num_frames_per_prompt=1):
+    def sample(self, encoder_hidden_states, steps=None, cfg=None, cfg_mode=1, seed=42, height=512, width=512, use_dynamic_shifting=False, extra_vit_input=None, ref_x=None, directvlm_hidden_states=None, num_frames_per_prompt=1, generator=None, latents=None, callback_on_step_end=None):
         sampling = self.inference_profile.resolve_sampling_parameters(
             steps=steps,
             cfg=cfg,
@@ -265,7 +265,7 @@ class ImageGenerator(torch.nn.Module):
             )
             encoder_hidden_states = list(encoder_hidden_states.unbind(dim=0))
             negative_prompt_embeds= [en * 0 for en in encoder_hidden_states]
-        
+
         encoder_hidden_states_2 = directvlm_hidden_states
         negative_prompt_embeds_2 = None
         if encoder_hidden_states_2 is not None:
@@ -275,6 +275,8 @@ class ImageGenerator(torch.nn.Module):
             encoder_hidden_states_2 = list(encoder_hidden_states_2.unbind(dim=0))
             negative_prompt_embeds_2= [en * 0 for en in encoder_hidden_states_2]
 
+        if generator is None:
+            generator = torch.manual_seed(seed)
         image = self.pipelines(
             prompt_embeds=encoder_hidden_states,
             negative_prompt_embeds=negative_prompt_embeds,
@@ -282,7 +284,7 @@ class ImageGenerator(torch.nn.Module):
             negative_prompt_embeds_2=negative_prompt_embeds_2,
             guidance_scale=cfg,
             #guidance_scale_mode=cfg_mode,
-            generator=torch.manual_seed(seed),
+            generator=generator,
             num_inference_steps=steps,
             height=height,
             width=width,
@@ -293,6 +295,8 @@ class ImageGenerator(torch.nn.Module):
             #use_dynamic_shifting=use_dynamic_shifting,
             sample_mode=self.vae_sample_mode,
             num_frames_per_prompt=num_frames_per_prompt,
+            latents=latents,
+            callback_on_step_end=callback_on_step_end,
         ).images
 
         return image  

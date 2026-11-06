@@ -33,15 +33,25 @@ def load_mllm_num_hidden_layers(model_directory: str | Path) -> int:
     except (OSError, json.JSONDecodeError) as exc:
         raise MLLMDeviceMapError(f"cannot read MLLM config {config_path}: {exc}") from None
 
-    llm_config = config.get("llm_config")
-    nested = llm_config.get("num_hidden_layers") if isinstance(llm_config, dict) else None
+    # miniv2 nests the decoder config under llm_config; tinyv3 under
+    # text_config. Both are explicit config fields, never inferred.
+    nested_candidates = []
+    for section in ("llm_config", "text_config"):
+        section_config = config.get(section)
+        if isinstance(section_config, dict) and "num_hidden_layers" in section_config:
+            nested_candidates.append(section_config["num_hidden_layers"])
     root = config.get("num_hidden_layers")
-    if nested is not None and root is not None and nested != root:
+    values = nested_candidates + ([root] if root is not None else [])
+    if not values:
         raise MLLMDeviceMapError(
-            "ambiguous decoder depth: "
-            f"llm_config.num_hidden_layers={nested!r}, num_hidden_layers={root!r}"
+            f"missing MLLM num_hidden_layers in {config_path}"
         )
-    value = nested if nested is not None else root
+    if len(set(values)) != 1:
+        raise MLLMDeviceMapError(
+            "ambiguous decoder depth in "
+            f"{config_path}: {values}"
+        )
+    value = values[0]
     if isinstance(value, bool) or not isinstance(value, int) or value <= 0:
         raise MLLMDeviceMapError(
             f"missing or invalid MLLM num_hidden_layers in {config_path}: {value!r}"
@@ -99,6 +109,7 @@ def build_mllm_device_plan(
     num_hidden_layers: int,
     n_gpu: int,
     *,
+    family: str | None = None,
     gpu0_reserved_layer_equivalents: int = DEFAULT_GPU0_RESERVED_LAYER_EQUIVALENTS,
 ) -> MLLMDevicePlan:
     counts = allocate_mllm_layer_counts(
@@ -109,22 +120,45 @@ def build_mllm_device_plan(
     layer_devices = tuple(
         device for device, count in enumerate(counts) for _ in range(count)
     )
-    device_map = {
-        f"model.model.layers.{layer_index}": device
-        for layer_index, device in enumerate(layer_devices)
-    }
-    # Image conditioning and diffusion modules are attached after the base
-    # checkpoint load and are intentionally placed on logical CUDA device 0.
-    device_map.update(
-        {
-            "vision": 0,
-            "linear_proj": 0,
-            "model.model.word_embeddings.weight": 0,
-            "model.model.norm.weight": 0,
-            "model.lm_head.weight": 0,
-            "model.model.norm": 0,
+    if family in (None, "miniv2"):
+        # miniv2: BailingMM2Native.model = LLM; LLM.model holds the decoder.
+        device_map = {
+            f"model.model.layers.{layer_index}": device
+            for layer_index, device in enumerate(layer_devices)
         }
-    )
+        # Image conditioning and diffusion modules are attached after the base
+        # checkpoint load and are intentionally placed on logical CUDA device 0.
+        device_map.update(
+            {
+                "vision": 0,
+                "linear_proj": 0,
+                "model.model.word_embeddings.weight": 0,
+                "model.model.norm.weight": 0,
+                "model.lm_head.weight": 0,
+                "model.model.norm": 0,
+            }
+        )
+    elif family == "tinyv3":
+        # tinyv3: the VL model directly holds decoder layers, the vision
+        # tower, embeddings and final norm (checkpoint keys model.layers.*,
+        # model.visual.*, model.embed_tokens / model.norm); linear_proj and
+        # lm_head live at the wrapper root.
+        device_map = {
+            f"model.layers.{layer_index}": device
+            for layer_index, device in enumerate(layer_devices)
+        }
+        device_map.update(
+            {
+                "model.visual": 0,
+                "model.embed_tokens": 0,
+                "model.word_embeddings": 0,
+                "model.norm": 0,
+                "linear_proj": 0,
+                "lm_head": 0,
+            }
+        )
+    else:
+        raise MLLMDeviceMapError(f"unknown MLLM family: {family!r}")
     return MLLMDevicePlan(
         num_hidden_layers=num_hidden_layers,
         n_gpu=n_gpu,

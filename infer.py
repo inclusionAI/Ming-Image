@@ -13,7 +13,9 @@ from typing import Iterable, List
 
 from inference_profile import (
     VALID_TASKS,
+    FAMILY_TINYV3,
     load_checkpoint_capabilities,
+    load_mllm_family,
     resolve_model_directory,
 )
 from mllm_device_map import (
@@ -32,6 +34,14 @@ TASK_DEFAULT_RESOLUTIONS = {
     "text-to-image": 2048,
     "image-edit": 1024,
     "layer-decompose": 1024,
+}
+
+# tinyv3 was trained/validated at 1024 and below; it does not declare 2048
+# capability, so its text-to-image default stays at 1024 while miniv2 keeps
+# the established 2048 default. Explicit --resolution/--width/--height
+# overrides always win.
+FAMILY_TASK_DEFAULT_RESOLUTIONS = {
+    ("tinyv3", "text-to-image"): 1024,
 }
 
 
@@ -74,9 +84,10 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--attn-implementation",
         choices=("sdpa", "flash_attention_2", "eager"),
-        # The BailingMoeV2 LLM only implements eager and flash_attention_2
-        # attention classes; selecting "sdpa" fails closed at load time.
-        default="eager",
+        # Resolved per MLLM family when omitted: miniv2 keeps its validated
+        # "eager" default (its LLM only implements eager/FA2 and fails
+        # closed on sdpa); tinyv3 defaults to "sdpa".
+        default=None,
     )
     parser.add_argument("--device", default="cuda:0")
     parser.add_argument(
@@ -122,21 +133,29 @@ def parse_num_layers(text: str) -> int:
     return 5
 
 
-def resolve_task_resolution(task: str, requested: int | None) -> int:
+def resolve_task_resolution(
+    task: str, requested: int | None, family: str = "miniv2"
+) -> int:
     """Resolve a user request to the nearest supported task-level bucket."""
     try:
         buckets = TASK_RESOLUTION_BUCKETS[task]
     except KeyError as exc:
         raise ValueError(f"unsupported task for resolution policy: {task!r}") from exc
     if requested is None:
-        return TASK_DEFAULT_RESOLUTIONS[task]
+        return FAMILY_TASK_DEFAULT_RESOLUTIONS.get(
+            (family, task), TASK_DEFAULT_RESOLUTIONS[task]
+        )
     if isinstance(requested, bool) or not isinstance(requested, int) or requested <= 0:
         raise ValueError("--resolution must be a positive integer")
     return min(buckets, key=lambda value: (abs(value - requested), value))
 
 
 def resolve_t2i_size(
-    task: str, resolution: int | None, width: int | None, height: int | None
+    task: str,
+    resolution: int | None,
+    width: int | None,
+    height: int | None,
+    family: str = "miniv2",
 ) -> tuple[int, int, int]:
     """Return output (width, height) and the existing internal size bucket.
 
@@ -144,7 +163,7 @@ def resolve_t2i_size(
     remains unchanged, including the exact 2048 x 2048 smoke configuration.
     """
     if width is None and height is None:
-        bucket = resolve_task_resolution(task, resolution)
+        bucket = resolve_task_resolution(task, resolution, family)
         return bucket, bucket, bucket
     if task != "text-to-image":
         raise ValueError("--width and --height are supported only for text-to-image")
@@ -183,12 +202,16 @@ def _dtype(name: str):
     }[name]
 
 
-def _build_messages(task: str, prompt: str, input_image: Path | None):
+def _build_messages(task: str, prompt: str, input_image: Path | None, family: str):
     content = []
     if input_image is not None:
         content.append({"type": "image", "image": str(input_image)})
     content.append({"type": "text", "text": prompt})
-    return [{"role": "HUMAN", "content": content}]
+    # The miniv2 template addresses the user turn as "HUMAN"; the tinyv3
+    # chat template (Bailing v3 jinja) addresses it as "user". Both render
+    # the same <role>HUMAN</role> wire format through their own templates.
+    role = "user" if family == FAMILY_TINYV3 else "HUMAN"
+    return [{"role": role, "content": content}]
 
 
 def _normalize_outputs(output) -> List[Image.Image]:
@@ -211,8 +234,10 @@ def _model_input_device(model):
 
 
 def _validate_balanced_placement(model, plan, torch) -> None:
+    layers_accessor = getattr(model, "iter_mllm_decoder_layers", None)
+    layers = layers_accessor() if layers_accessor is not None else model.model.model.layers
     layer_devices = []
-    for index, layer in enumerate(model.model.model.layers):
+    for index, layer in enumerate(layers):
         devices = {parameter.device for parameter in layer.parameters()}
         if len(devices) != 1:
             raise RuntimeError(f"MLLM layer {index} spans devices {sorted(map(str, devices))}")
@@ -222,16 +247,20 @@ def _validate_balanced_placement(model, plan, torch) -> None:
         layer_devices.append(device.index)
     validate_loaded_layer_devices(layer_devices, plan)
 
-    fixed_modules = {
-        "vision": model.vision,
-        "linear_proj": model.linear_proj,
-        "connector": getattr(model, "connector", None),
-        "proj_in": getattr(model, "proj_in", None),
-        "proj_out": getattr(model, "proj_out", None),
-        "proj_directvlm": getattr(model, "proj_directvlm", None),
-        "query_tokens": getattr(model, "query_tokens_dict", None),
-        "diffusion": getattr(model, "diffusion_loss", None),
-    }
+    modules_accessor = getattr(model, "fixed_image_modules", None)
+    if modules_accessor is not None:
+        fixed_modules = modules_accessor()
+    else:
+        fixed_modules = {
+            "vision": model.vision,
+            "linear_proj": model.linear_proj,
+            "connector": getattr(model, "connector", None),
+            "proj_in": getattr(model, "proj_in", None),
+            "proj_out": getattr(model, "proj_out", None),
+            "proj_directvlm": getattr(model, "proj_directvlm", None),
+            "query_tokens": getattr(model, "query_tokens_dict", None),
+            "diffusion": getattr(model, "diffusion_loss", None),
+        }
     expected = {torch.device("cuda:0")}
     for name, module in fixed_modules.items():
         if module is None:
@@ -267,6 +296,7 @@ def main() -> None:
         cache_dir=args.cache_dir,
         local_files_only=args.local_files_only,
     )
+    family = load_mllm_family(model_directory)
     profile = load_checkpoint_capabilities(model_directory)
 
     has_reference_image = args.input_image is not None
@@ -275,8 +305,12 @@ def main() -> None:
         has_reference_image=has_reference_image,
         num_layers=args.num_layers,
     )
+    if family == FAMILY_TINYV3 and profile.inference_profile == "layer_decompose":
+        raise ValueError(
+            "tinyv3 checkpoints do not declare layer-decompose capability"
+        )
     output_width, output_height, effective_resolution = resolve_t2i_size(
-        args.task, args.resolution, args.width, args.height
+        args.task, args.resolution, args.width, args.height, family
     )
     if args.resolution is not None and args.resolution != effective_resolution:
         print(
@@ -284,7 +318,9 @@ def main() -> None:
             f"for task {args.task}",
             file=sys.stderr,
         )
-    sampling = profile.resolve_sampling_parameters(steps=args.steps, cfg=args.cfg)
+    sampling = profile.resolve_sampling_parameters(
+        steps=args.steps, cfg=args.cfg, family=family
+    )
     if args.input_image is not None and not args.input_image.is_file():
         raise FileNotFoundError(f"input image does not exist: {args.input_image}")
     if args.task != "layer-decompose" and not args.prompt:
@@ -298,6 +334,10 @@ def main() -> None:
     if args.validate_only:
         validation = {
             "model": str(model_directory),
+            "mllm_family": family,
+            "attn_implementation": resolve_attn_default(
+                family, args.attn_implementation
+            ),
             "task": args.task,
             "profile": profile.__dict__,
             "sampling": sampling.__dict__,
@@ -306,6 +346,11 @@ def main() -> None:
                 "effective": effective_resolution,
             },
         }
+        if family == FAMILY_TINYV3:
+            validation["dependencies"] = {
+                "fla-core": "required (KDA linear-attention kernels)",
+                "flash-attn": ">=2.6 recommended (vision attention softcap)",
+            }
         if args.task == "text-to-image":
             validation["output_size"] = {
                 "width": output_width,
@@ -319,7 +364,7 @@ def main() -> None:
         )
         return
 
-    model, processor = load_model_and_processor(model_directory, args)
+    model, processor = load_model_and_processor(model_directory, args, family)
     images = run_generation(
         model,
         processor,
@@ -334,18 +379,43 @@ def main() -> None:
         seed=args.seed,
         num_layers=num_layers,
         dtype=_dtype(args.dtype),
+        family=family,
     )
 
     output_paths = _save_outputs(images, args.output_dir, args.task)
     print(json.dumps({"outputs": [str(path.resolve()) for path in output_paths]}, indent=2))
 
 
-def load_model_and_processor(model_directory: Path, args):
+def resolve_family_backend(family: str):
+    """Map a checkpoint MLLM family to (model class, processor factory)."""
+    if family == FAMILY_TINYV3:
+        from modeling_bailing_moe_v3 import BailingMoeV3VLNativeForConditionalGeneration
+        from processing_bailingmoe_v3 import BailingMoeV3Processor
+
+        return BailingMoeV3VLNativeForConditionalGeneration, BailingMoeV3Processor.from_pretrained
+    from modeling_bailingmm2 import BailingMM2NativeForConditionalGeneration
+    from processing_bailingmm2 import load_bailingmm2_processor
+
+    return BailingMM2NativeForConditionalGeneration, load_bailingmm2_processor
+
+
+def resolve_attn_default(family: str, requested: str | None) -> str:
+    """Family-aware --attn-implementation default.
+
+    miniv2 keeps its established "eager" default (its LLM only implements
+    eager/FA2 and fails closed on sdpa). tinyv3 implements sdpa and that is
+    its validated default; an explicit user choice always wins.
+    """
+    if requested is not None:
+        return requested
+    return "sdpa" if family == FAMILY_TINYV3 else "eager"
+
+
+def load_model_and_processor(model_directory: Path, args, family: str):
     """Load the model and processor once; shared by the CLI and batch tools."""
     import torch
 
-    from modeling_bailingmm2 import BailingMM2NativeForConditionalGeneration
-    from processing_bailingmm2 import load_bailingmm2_processor
+    model_cls, processor_factory = resolve_family_backend(family)
 
     # Processor/tokenizer data lives in the package's mllm/ component; the
     # Python implementations stay in this repository (AutoProcessor would
@@ -356,12 +426,12 @@ def load_model_and_processor(model_directory: Path, args):
         if args.processor
         else model_directory / "mllm"
     )
-    processor = load_bailingmm2_processor(processor_directory)
+    processor = processor_factory(str(processor_directory))
 
     dtype = _dtype(args.dtype)
     load_kwargs = {
         "torch_dtype": dtype,
-        "attn_implementation": args.attn_implementation,
+        "attn_implementation": resolve_attn_default(family, args.attn_implementation),
         "load_image_gen": True,
         "image_gen_device": args.device,
     }
@@ -374,7 +444,9 @@ def load_model_and_processor(model_directory: Path, args):
                 "set CUDA_VISIBLE_DEVICES before starting Python"
             )
         num_hidden_layers = load_mllm_num_hidden_layers(model_directory / "mllm")
-        device_plan = build_mllm_device_plan(num_hidden_layers, visible_gpus)
+        device_plan = build_mllm_device_plan(
+            num_hidden_layers, visible_gpus, family=family
+        )
         load_kwargs["device_map"] = device_plan.device_map
         print(
             f"MLLM device plan: {visible_gpus} GPUs, layer_counts={device_plan.layer_counts}"
@@ -382,9 +454,7 @@ def load_model_and_processor(model_directory: Path, args):
     elif args.device_map == "auto":
         load_kwargs["device_map"] = "auto"
 
-    model = BailingMM2NativeForConditionalGeneration.from_pretrained(
-        str(model_directory), **load_kwargs
-    )
+    model = model_cls.from_pretrained(str(model_directory), **load_kwargs)
     if args.device_map == "none":
         model = model.to(device=args.device, dtype=dtype)
     elif device_plan is not None:
@@ -407,16 +477,17 @@ def run_generation(
     dtype,
     width: int | None = None,
     height: int | None = None,
+    family: str = "miniv2",
 ) -> List:
     """Run one inference with an already-loaded model and processor."""
     import torch
     from PIL import Image
 
     output_width, output_height, resolution = resolve_t2i_size(
-        task, None if width is not None else resolution, width, height
+        task, None if width is not None else resolution, width, height, family
     )
 
-    messages = _build_messages(task, prompt, input_image)
+    messages = _build_messages(task, prompt, input_image, family)
     text = processor.apply_chat_template(messages, add_generation_prompt=True)
     image_inputs, video_inputs, _ = processor.process_vision_info(messages)
 
