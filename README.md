@@ -166,13 +166,13 @@ python infer.py --model inclusionAI/Ming-Image-0.2-Design --task text-to-image \
 
 ### Text-to-image demo
 
-Natural-language example ([DeepInfra](https://deepinfra.com/blog/ming-design-with-ai)):
+Natural-language example ([Ming-Image-0.2-Design model card](https://huggingface.co/inclusionAI/Ming-Image-0.2-Design)):
 
 ```bash
 python infer.py \
   --model inclusionAI/Ming-Image-0.2-Design \
   --task text-to-image \
-  --prompt "Landing page for a productivity app called Flow. Clean minimal design, white background, generous whitespace. Top nav with the wordmark 'Flow' on the left and links Product, Pricing, Docs on the right. Centered hero with a bold headline 'Focus without the noise' and a subtle gray subheading. A single purple call-to-action button labeled 'Start free'. Below the hero, three feature cards with small icons, soft rounded corners and soft shadows. Modern sans-serif typography." \
+  --prompt "Landing page for a productivity app called Flow. Clean minimal design, white background, generous whitespace. Top navigation with the wordmark 'Flow' on the left and links Product, Pricing, Docs on the right. Centered hero with a bold headline 'Focus without the noise' and a gray subheading 'One calm workspace to plan, focus, and finish.' A single purple call-to-action button labeled 'Start free'. Below the hero, three feature cards with small icons, soft rounded corners and soft shadows. Card 1: title 'Plan your day', body text 'Turn scattered tasks into a clear, realistic plan.' Card 2: title 'Focus sessions', body text 'Start a distraction-free session and stay in flow.' Card 3: title 'See progress', body text 'Know what moved, what slipped, and what comes next.' Modern sans-serif typography. Keep every heading and body line short and legible. Render all text exactly as written. Do not invent additional copy." \
   --width 2048 --height 2048 \
   --output-dir outputs/flow
 ```
