@@ -1,0 +1,25 @@
+assets/ming-image-0.2-design-aa-t2i-leaderboard-preview.svg
+  s_55082bfdff0d16::t_5e97e29070920f 1-5
+assets/README.md
+  s_55082bfdff0d16::t_5e97e29070920f 14-15,22-24
+assets/ming-image-0.2-design-aa-category-performance-preview.svg
+  s_55082bfdff0d16::t_5e97e29070920f 1-5
+README.md
+  s_55082bfdff0d16::t_5e97e29070920f 22,29-31,39,46-62,65,69,73
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "5bac2760e961429d6ff607b5c4cc0f7a2e89fd61",
+  "prompts": {},
+  "sessions": {
+    "s_55082bfdff0d16": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a21365-0f4a-7e82-b75a-593a2bd33dc9",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "weilong.cwl <weilong.cwl@antgroup.com>"
+    }
+  }
+}
