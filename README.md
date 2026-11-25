@@ -45,18 +45,27 @@ designs into independently editable transparent layers.
 
 ### Ming-Image-0.2-Design
 
-<table>
-  <tr>
-    <td width="50%" valign="top">
-      <a href="assets/model_cards/ming-image-0.2-design-ecommerce.jpg"><img src="assets/model_cards/ming-image-0.2-design-ecommerce.jpg" width="360" alt="Ming-Image-0.2-Design e-commerce hero visual featuring a skincare product, detailed materials, and clear product labeling"></a><br>
-      <sub>E-commerce hero visuals: fine material detail and clear product information.</sub>
-    </td>
-    <td width="50%" valign="top">
-      <a href="assets/model_cards/ming-image-0.2-design-web-design.png"><img src="assets/model_cards/ming-image-0.2-design-web-design.png" width="360" alt="Ming-Image-0.2-Design museum website with multiple content sections and a cohesive visual style"></a><br>
-      <sub>Web design: multi-section layouts and a cohesive visual style.</sub>
-    </td>
-  </tr>
-</table>
+<p>
+  <a href="assets/model_cards/ming-image-0.2-design-web-design.png"><img src="assets/model_cards/ming-image-0.2-design-web-design.png" width="100%" alt="Ming-Image-0.2-Design museum website with multiple content sections and a cohesive visual style"></a>
+</p>
+
+<p>
+  <a href="assets/model_cards/ming-image-0.2-design-ecommerce.jpg"><img src="assets/model_cards/ming-image-0.2-design-ecommerce.jpg" align="left" width="420" hspace="24" alt="Ming-Image-0.2-Design e-commerce hero visual featuring a skincare product, detailed materials, and clear product labeling"></a>
+</p>
+
+<p>
+  <strong>↑ Web design</strong><br>
+  Multi-section layouts and a cohesive visual style.
+</p>
+
+<br><br><br>
+
+<p>
+  <strong>← E-commerce hero visuals</strong><br>
+  Fine material detail and clear product information.
+</p>
+
+<br clear="all">
 
 ### Ming-Image-0.1-Design and -Layer Models
 
