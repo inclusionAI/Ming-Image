@@ -19,20 +19,16 @@ designs into independently editable transparent layers.
 <table>
   <tr>
     <th width="20%">Model</th>
-    <th width="40%"><a href="https://artificialanalysis.ai/image/leaderboard/text-to-image">Artificial Analysis leaderboard</a></th>
-    <th width="40%">Category performance</th>
+    <th width="80%"><a href="https://artificialanalysis.ai/image/leaderboard/text-to-image">Artificial Analysis leaderboard</a></th>
   </tr>
   <tr>
     <td valign="top"><strong>Ming-Image-0.2-Design<br>Latest</strong></td>
     <td valign="top">
       <strong>#1 among open-weight models overall</strong><br>
       <sub>As of Nov 25, 2026 · AA-Image-T2I v2.1</sub><br>
-      <a href="assets/ming-image-0.2-design-aa-t2i-leaderboard.png"><img src="assets/ming-image-0.2-design-aa-t2i-leaderboard.png" width="100%" alt="Ming-Image-0.2-Design AA-Image-T2I v2.1 leaderboard"></a><br>
-      <sub>November 2026 evaluation name: <code>Ming-Image-0.1-Design-high-AA</code>. Click either image to view it at full size.</sub>
-    </td>
-    <td valign="top">
-      <strong>November 2026</strong><br>
-      <a href="assets/ming-image-0.2-design-aa-category-performance.png"><img src="assets/ming-image-0.2-design-aa-category-performance.png" width="100%" alt="Ming-Image-0.2-Design category performance, November 2026"></a>
+      <a href="assets/ming-image-0.2-design-aa-t2i-leaderboard.png"><img src="assets/ming-image-0.2-design-aa-t2i-leaderboard-preview.svg" width="49%" alt="Ming-Image-0.2-Design AA-Image-T2I v2.1 leaderboard"></a>
+      <a href="assets/ming-image-0.2-design-aa-category-performance.png"><img src="assets/ming-image-0.2-design-aa-category-performance-preview.svg" width="49%" alt="Ming-Image-0.2-Design category performance"></a><br>
+      <sub>Evaluated as <code>Ming-Image-0.1-Design-high-AA</code> in November 2026. Click either image to view it at full size.</sub>
     </td>
   </tr>
   <tr>
@@ -40,25 +36,41 @@ designs into independently editable transparent layers.
     <td valign="top">
       #1 among open-weight models in UI/UX Design<br>
       <sub>As of Sep 22, 2026</sub><br>
-      <a href="assets/ming-image-design-ui-ux-leaderboard.webp"><img src="assets/ming-image-design-ui-ux-leaderboard.webp" width="100%" alt="Ming-Image-0.1-Design UI/UX Design leaderboard"></a>
+      <a href="assets/ming-image-design-ui-ux-leaderboard.webp"><img src="assets/ming-image-design-ui-ux-leaderboard.webp" width="49%" alt="Ming-Image-0.1-Design UI/UX Design leaderboard"></a>
     </td>
-    <td valign="top">—</td>
   </tr>
 </table>
 
 ## Gallery
 
+### Ming-Image-0.2-Design
+
+<table>
+  <tr>
+    <td width="50%" valign="top">
+      <a href="assets/model_cards/ming-image-0.2-design-ecommerce.jpg"><img src="assets/model_cards/ming-image-0.2-design-ecommerce.jpg" width="360" alt="Ming-Image-0.2-Design e-commerce hero visual featuring a skincare product, detailed materials, and clear product labeling"></a><br>
+      <sub>E-commerce hero visuals: fine material detail and clear product information.</sub>
+    </td>
+    <td width="50%" valign="top">
+      <a href="assets/model_cards/ming-image-0.2-design-web-design.png"><img src="assets/model_cards/ming-image-0.2-design-web-design.png" width="360" alt="Ming-Image-0.2-Design museum website with multiple content sections and a cohesive visual style"></a><br>
+      <sub>Web design: multi-section layouts and a cohesive visual style.</sub>
+    </td>
+  </tr>
+</table>
+
+### Ming-Image-0.1-Design and -Layer Models
+
 These examples were generated with the 0.1 Design and Layer models.
 
-### Text-to-image
+#### Text-to-image
 
 ![Text-to-image showcase](assets/model_cards/design_showcase.webp)
 
-### Transparent-background text-to-image
+#### Transparent-background text-to-image
 
 ![Transparent-background text-to-image showcase](assets/model_cards/design_transparency_showcase.webp)
 
-### Layer decomposition
+#### Layer decomposition
 
 ![Six-layer card decomposition showcase](assets/model_cards/layer_showcase.webp)
 

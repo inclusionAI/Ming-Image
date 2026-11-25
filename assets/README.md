@@ -11,12 +11,17 @@ README and runnable demos.
   shows the same model's category ranks and Elo gaps to category leaders.
   The figures use the evaluation name `Ming-Image-0.1-Design-high-AA` for
   0.2 Design.
+- The corresponding `*-preview.svg` assets display the two 0.2 leaderboard
+  figures in matching frames without stretching; each links to its original PNG.
 - [`ming-image-design-ui-ux-leaderboard.webp`](./ming-image-design-ui-ux-leaderboard.webp)
   is the historical 0.1 Design UI/UX leaderboard, displayed alongside the 0.2
   figures in the main README's image table.
 - [`model_cards/`](./model_cards/) contains the image-only showcases used on
   the Design and Layer model pages, including the Layer gallery and
   performance result.
+- [`model_cards/ming-image-0.2-design-ecommerce.jpg`](./model_cards/ming-image-0.2-design-ecommerce.jpg)
+  and [`model_cards/ming-image-0.2-design-web-design.png`](./model_cards/ming-image-0.2-design-web-design.png)
+  are the e-commerce and web-design examples in the 0.2 Design gallery.
 - [`t2i_samples/`](./t2i_samples/) contains text-to-image examples. Its
   `transparent_rgba/` subdirectory contains examples with an alpha channel.
 - [`layer_samples/`](./layer_samples/) contains the input, layer specification,
