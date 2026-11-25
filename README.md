@@ -1,27 +1,54 @@
-# Ming Image 0.1 Design
+# Ming Image
 
-| Model | Links |
-| --- | --- |
-| **Design** | [🧩 ModelScope](https://www.modelscope.cn/models/inclusionAI/Ming-Image-0.1-Design) · [🤗 Hugging Face](https://huggingface.co/inclusionAI/Ming-Image-0.1-Design) · [🖥️ Demo](https://huggingface.co/spaces/hugging-apps/ming-image-0-1-design-demo) |
-| **Layer** | [🧩 ModelScope](https://www.modelscope.cn/models/inclusionAI/Ming-Image-0.1-Design-Layer) · [🤗 Hugging Face](https://huggingface.co/inclusionAI/Ming-Image-0.1-Design-Layer) · [🖥️ Demo](https://huggingface.co/spaces/Xiaolong-Wang/Ming-Image-0.1-Design-Layer) |
+Ming Image is a family of models for visual-design generation and editable
+layer decomposition. **Ming-Image-0.2-Design** is the latest Design model,
+using the same inference code as 0.1 Design.
 
-[📄 Blog](https://mp.weixin.qq.com/s/VGdtxfM8kbHIQJw50VD_Sw) · [🎨 Design Skill](https://github.com/inclusionAI/ling-cookbook/tree/main/resources/recommended-skills/ling-ui-design) · [📊 PPT Skill](https://github.com/inclusionAI/ling-cookbook/tree/main/resources/recommended-skills/image-to-editable-ppt)
+| Model | Task | Weights | Blog | Skills | Demo |
+| --- | --- | --- | --- | --- | --- |
+| **Ming-Image-0.2-Design** | **Visual-design generation** | [🤗 Hugging Face](https://huggingface.co/inclusionAI/Ming-Image-0.2-Design)<br>[🧩 ModelScope](https://www.modelscope.cn/models/inclusionAI/Ming-Image-0.2-Design) | — | [Design](https://github.com/inclusionAI/ling-cookbook/tree/main/resources/recommended-skills/ling-ui-design) · [PPT](https://github.com/inclusionAI/ling-cookbook/tree/main/resources/recommended-skills/image-to-editable-ppt) | — |
+| Ming-Image-0.1-Design | Visual-design generation | [🤗 Hugging Face](https://huggingface.co/inclusionAI/Ming-Image-0.1-Design)<br>[🧩 ModelScope](https://www.modelscope.cn/models/inclusionAI/Ming-Image-0.1-Design) | [Blog](https://mp.weixin.qq.com/s/VGdtxfM8kbHIQJw50VD_Sw) | [Design](https://github.com/inclusionAI/ling-cookbook/tree/main/resources/recommended-skills/ling-ui-design) · [PPT](https://github.com/inclusionAI/ling-cookbook/tree/main/resources/recommended-skills/image-to-editable-ppt) | [Try it](https://huggingface.co/spaces/hugging-apps/ming-image-0-1-design-demo) |
+| Ming-Image-0.1-Design-Layer | Editable layer decomposition | [🤗 Hugging Face](https://huggingface.co/inclusionAI/Ming-Image-0.1-Design-Layer)<br>[🧩 ModelScope](https://www.modelscope.cn/models/inclusionAI/Ming-Image-0.1-Design-Layer) | [Blog](https://mp.weixin.qq.com/s/VGdtxfM8kbHIQJw50VD_Sw) | [Design](https://github.com/inclusionAI/ling-cookbook/tree/main/resources/recommended-skills/ling-ui-design) · [PPT](https://github.com/inclusionAI/ling-cookbook/tree/main/resources/recommended-skills/image-to-editable-ppt) | [Try it](https://huggingface.co/spaces/Xiaolong-Wang/Ming-Image-0.1-Design-Layer) |
 
-Ming-Image-0.1-Design is an open-source series for visual-design generation
-and editable layer decomposition.
+Design models generate UI, infographics, posters, and text-rich compositions,
+including transparent-background images. The Layer model decomposes flattened
+designs into independently editable transparent layers.
 
-The series includes two 6B-parameter models:
+## Leaderboard
 
-- [Ming-Image-0.1-Design](https://huggingface.co/inclusionAI/Ming-Image-0.1-Design)
-  generates complete visual designs for UI, infographics, posters, and
-  text-rich compositions.
-- [Ming-Image-0.1-Design-Layer](https://huggingface.co/inclusionAI/Ming-Image-0.1-Design-Layer)
-  decomposes flattened design images into independently editable transparent
-  layers.
-
-![Ming-Image-0.1-Design on the Artificial Analysis UI/UX Design leaderboard](assets/ming-image-design-ui-ux-leaderboard.webp)
+<table>
+  <tr>
+    <th width="20%">Model</th>
+    <th width="40%"><a href="https://artificialanalysis.ai/image/leaderboard/text-to-image">Artificial Analysis leaderboard</a></th>
+    <th width="40%">Category performance</th>
+  </tr>
+  <tr>
+    <td valign="top"><strong>Ming-Image-0.2-Design<br>Latest</strong></td>
+    <td valign="top">
+      <strong>#1 among open-weight models overall</strong><br>
+      <sub>As of Nov 25, 2026 · AA-Image-T2I v2.1</sub><br>
+      <a href="assets/ming-image-0.2-design-aa-t2i-leaderboard.png"><img src="assets/ming-image-0.2-design-aa-t2i-leaderboard.png" width="100%" alt="Ming-Image-0.2-Design AA-Image-T2I v2.1 leaderboard"></a><br>
+      <sub>November 2026 evaluation name: <code>Ming-Image-0.1-Design-high-AA</code>. Click either image to view it at full size.</sub>
+    </td>
+    <td valign="top">
+      <strong>November 2026</strong><br>
+      <a href="assets/ming-image-0.2-design-aa-category-performance.png"><img src="assets/ming-image-0.2-design-aa-category-performance.png" width="100%" alt="Ming-Image-0.2-Design category performance, November 2026"></a>
+    </td>
+  </tr>
+  <tr>
+    <td valign="top">Ming-Image-0.1-Design</td>
+    <td valign="top">
+      #1 among open-weight models in UI/UX Design<br>
+      <sub>As of Sep 22, 2026</sub><br>
+      <a href="assets/ming-image-design-ui-ux-leaderboard.webp"><img src="assets/ming-image-design-ui-ux-leaderboard.webp" width="100%" alt="Ming-Image-0.1-Design UI/UX Design leaderboard"></a>
+    </td>
+    <td valign="top">—</td>
+  </tr>
+</table>
 
 ## Gallery
+
+These examples were generated with the 0.1 Design and Layer models.
 
 ### Text-to-image
 
@@ -66,6 +93,11 @@ diffusion transformer always uses PyTorch SDPA internally. Selecting
 
 ## Inference
 
+**0.2 Design and 0.1 Design share the same inference code and options.**
+The text-to-image examples below use `inclusionAI/Ming-Image-0.2-Design`;
+substitute `inclusionAI/Ming-Image-0.1-Design` to run the earlier model.
+Layer decomposition continues to use `inclusionAI/Ming-Image-0.1-Design-Layer`.
+
 The `--model` argument accepts either a local directory or an HF Hub repo ID.
 Hub models are resolved to one immutable local snapshot before any component is
 loaded. Use `--revision` to pin a branch, tag or commit. The examples use the
@@ -106,7 +138,7 @@ Use `--validate-only` to check the checkpoint contract and task combination
 without loading model weights:
 
 ```bash
-python infer.py --model inclusionAI/Ming-Image-0.1-Design --task text-to-image \
+python infer.py --model inclusionAI/Ming-Image-0.2-Design --task text-to-image \
   --prompt "A red circle on a white background" \
   --width 2560 --height 1440 --validate-only
 ```
@@ -117,7 +149,7 @@ Natural-language example ([DeepInfra](https://deepinfra.com/blog/ming-design-wit
 
 ```bash
 python infer.py \
-  --model inclusionAI/Ming-Image-0.1-Design \
+  --model inclusionAI/Ming-Image-0.2-Design \
   --task text-to-image \
   --prompt "Landing page for a productivity app called Flow. Clean minimal design, white background, generous whitespace. Top nav with the wordmark 'Flow' on the left and links Product, Pricing, Docs on the right. Centered hero with a bold headline 'Focus without the noise' and a subtle gray subheading. A single purple call-to-action button labeled 'Start free'. Below the hero, three feature cards with small icons, soft rounded corners and soft shadows. Modern sans-serif typography." \
   --width 2048 --height 2048 \
@@ -132,7 +164,7 @@ stays in its file.
 
 ```bash
 python infer.py \
-  --model inclusionAI/Ming-Image-0.1-Design \
+  --model inclusionAI/Ming-Image-0.2-Design \
   --task text-to-image \
   --prompt assets/t2i_four_seasons_cabin_prompt.json \
   --attn-implementation flash_attention_2 \
@@ -285,7 +317,7 @@ the single-GPU placement and FlashAttention 2 configuration shown above:
 
 ```bash
 export CUDA_VISIBLE_DEVICES=0
-export MING_GENERATION_MODEL=inclusionAI/Ming-Image-0.1-Design
+export MING_GENERATION_MODEL=inclusionAI/Ming-Image-0.2-Design
 export MING_LAYER_MODEL=inclusionAI/Ming-Image-0.1-Design-Layer
 export MING_SMOKE_OUTPUT_DIR=/path/to/persistent/results
 python -m unittest -v tests.test_inference_smoke.InferenceSmokeTest.test_two_step_showcase_smoke

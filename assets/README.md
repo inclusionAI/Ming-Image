@@ -5,8 +5,15 @@ README and runnable demos.
 
 ## Contents
 
+- [`ming-image-0.2-design-aa-t2i-leaderboard.png`](./ming-image-0.2-design-aa-t2i-leaderboard.png)
+  is the November 2026 preliminary AA-Image-T2I v2.1 leaderboard for 0.2 Design.
+- [`ming-image-0.2-design-aa-category-performance.png`](./ming-image-0.2-design-aa-category-performance.png)
+  shows the same model's category ranks and Elo gaps to category leaders.
+  The figures use the evaluation name `Ming-Image-0.1-Design-high-AA` for
+  0.2 Design.
 - [`ming-image-design-ui-ux-leaderboard.webp`](./ming-image-design-ui-ux-leaderboard.webp)
-  is the UI/UX Design leaderboard graphic shown in the main README.
+  is the historical 0.1 Design UI/UX leaderboard, displayed alongside the 0.2
+  figures in the main README's image table.
 - [`model_cards/`](./model_cards/) contains the image-only showcases used on
   the Design and Layer model pages, including the Layer gallery and
   performance result.
