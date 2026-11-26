@@ -18,15 +18,15 @@ designs into independently editable transparent layers.
 
 <table>
   <tr>
-    <th width="20%">Model</th>
-    <th width="80%"><a href="https://artificialanalysis.ai/image/leaderboard/text-to-image">Artificial Analysis leaderboard</a></th>
+    <th width="35%">Model</th>
+    <th width="65%"><a href="https://artificialanalysis.ai/image/leaderboard/text-to-image">Artificial Analysis leaderboard</a></th>
   </tr>
   <tr>
-    <td valign="top"><strong>Ming-Image-0.2-Design<br>Latest</strong></td>
+    <td valign="top"><strong>Ming-Image-0.2-Design</strong><br>(Latest)</td>
     <td valign="top">
       <strong>#1 among open-weight models overall</strong><br>
       <sub>As of Nov 25, 2026 · AA-Image-T2I v2.1</sub><br>
-      <a href="assets/ming-image-0.2-design-aa-t2i-leaderboard.webp"><img src="assets/ming-image-0.2-design-aa-t2i-leaderboard-preview.webp" width="49%" alt="Ming-Image-0.2-Design ranked first on the AA-Image-T2I v2.1 overall open-weights leaderboard"></a>
+      <a href="assets/ming-image-0.2-design-aa-t2i-leaderboard.webp"><img src="assets/ming-image-0.2-design-aa-t2i-leaderboard-preview.webp" width="100%" alt="Ming-Image-0.2-Design ranked first on the AA-Image-T2I v2.1 overall open-weights leaderboard"></a>
     </td>
   </tr>
   <tr>
@@ -34,7 +34,7 @@ designs into independently editable transparent layers.
     <td valign="top">
       #1 among open-weight models in UI/UX Design<br>
       <sub>As of Sep 22, 2026</sub><br>
-      <a href="assets/ming-image-design-ui-ux-leaderboard.webp"><img src="assets/ming-image-design-ui-ux-leaderboard.webp" width="49%" alt="Ming-Image-0.1-Design UI/UX Design leaderboard"></a>
+      <a href="assets/ming-image-design-ui-ux-leaderboard.webp"><img src="assets/ming-image-design-ui-ux-leaderboard.webp" width="100%" alt="Ming-Image-0.1-Design UI/UX Design leaderboard"></a>
     </td>
   </tr>
 </table>
