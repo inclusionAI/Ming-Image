@@ -1,0 +1,21 @@
+README.md
+  s_55082bfdff0d16::t_c3d4d614e1baac 48-51,54-56,60-63
+assets/README.md
+  s_55082bfdff0d16::t_fe703c8efab737 22-26
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "8471e7269079734c0436503ee3d55dcfe0640d17",
+  "prompts": {},
+  "sessions": {
+    "s_55082bfdff0d16": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a21365-0f4a-7e82-b75a-593a2bd33dc9",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "weilong.cwl <weilong.cwl@antgroup.com>"
+    }
+  }
+}
