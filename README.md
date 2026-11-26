@@ -44,18 +44,21 @@ designs into independently editable transparent layers.
 ### Ming-Image-0.2-Design
 
 <p align="center">
+  <sub>Animated showcase · 4.13 MB · May take a moment to load · <a href="assets/model_cards/ming-image-0.2-design-ecommerce.webp">Open animation</a></sub><br>
   <a href="assets/model_cards/ming-image-0.2-design-ecommerce.webp"><img src="assets/model_cards/ming-image-0.2-design-ecommerce.webp" width="75%" alt="Ming-Image-0.2-Design e-commerce hero visuals slideshow"></a><br>
   <strong>E-commerce hero visuals</strong><br>
   Fine material detail and clear product information.
 </p>
 
 <p align="center">
+  <sub>Animated showcase · 2.79 MB · May take a moment to load · <a href="assets/model_cards/ming-image-0.2-design-web-design.webp">Open animation</a></sub><br>
   <a href="assets/model_cards/ming-image-0.2-design-web-design.webp"><img src="assets/model_cards/ming-image-0.2-design-web-design.webp" width="75%" alt="Ming-Image-0.2-Design web design slideshow"></a><br>
   <strong>Web design</strong><br>
   Multi-section layouts and a cohesive visual style.
 </p>
 
 <p align="center">
+  <sub>Animated showcase · 6.53 MB · May take a moment to load · <a href="assets/model_cards/ming-image-0.2-design-spatial-design.webp">Open animation</a></sub><br>
   <a href="assets/model_cards/ming-image-0.2-design-spatial-design.webp"><img src="assets/model_cards/ming-image-0.2-design-spatial-design.webp" width="75%" alt="Ming-Image-0.2-Design spatial design slideshow"></a><br>
   <strong>Spatial design</strong><br>
   Harmonizing structure, light, and shadow in complex scenes.
