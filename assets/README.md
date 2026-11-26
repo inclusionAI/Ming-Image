@@ -5,14 +5,14 @@ README and runnable demos.
 
 ## Contents
 
-- [`ming-image-0.2-design-aa-t2i-leaderboard.png`](./ming-image-0.2-design-aa-t2i-leaderboard.png)
+- [`ming-image-0.2-design-aa-t2i-leaderboard.webp`](./ming-image-0.2-design-aa-t2i-leaderboard.webp)
   is the November 2026 preliminary AA-Image-T2I v2.1 leaderboard for 0.2 Design.
-- [`ming-image-0.2-design-aa-category-performance.png`](./ming-image-0.2-design-aa-category-performance.png)
+- [`ming-image-0.2-design-aa-category-performance.webp`](./ming-image-0.2-design-aa-category-performance.webp)
   shows the same model's category ranks and Elo gaps to category leaders.
   The figures use the evaluation name `Ming-Image-0.1-Design-high-AA` for
   0.2 Design.
-- The corresponding `*-preview.svg` assets display the two 0.2 leaderboard
-  figures in matching frames without stretching; each links to its original PNG.
+- The corresponding `*-preview.webp` assets display the two 0.2 leaderboard
+  figures in matching frames without stretching; each links to the full-resolution figure.
 - [`ming-image-design-ui-ux-leaderboard.webp`](./ming-image-design-ui-ux-leaderboard.webp)
   is the historical 0.1 Design UI/UX leaderboard, displayed alongside the 0.2
   figures in the main README's image table.
@@ -20,7 +20,7 @@ README and runnable demos.
   the Design and Layer model pages, including the Layer gallery and
   performance result.
 - [`model_cards/ming-image-0.2-design-ecommerce.jpg`](./model_cards/ming-image-0.2-design-ecommerce.jpg)
-  and [`model_cards/ming-image-0.2-design-web-design.png`](./model_cards/ming-image-0.2-design-web-design.png)
+  and [`model_cards/ming-image-0.2-design-web-design.webp`](./model_cards/ming-image-0.2-design-web-design.webp)
   are the e-commerce and web-design examples in the 0.2 Design gallery.
 - [`t2i_samples/`](./t2i_samples/) contains text-to-image examples. Its
   `transparent_rgba/` subdirectory contains examples with an alpha channel.

@@ -26,8 +26,8 @@ designs into independently editable transparent layers.
     <td valign="top">
       <strong>#1 among open-weight models overall</strong><br>
       <sub>As of Nov 25, 2026 · AA-Image-T2I v2.1</sub><br>
-      <a href="assets/ming-image-0.2-design-aa-t2i-leaderboard.png"><img src="assets/ming-image-0.2-design-aa-t2i-leaderboard-preview.svg" width="49%" alt="Ming-Image-0.2-Design AA-Image-T2I v2.1 leaderboard"></a>
-      <a href="assets/ming-image-0.2-design-aa-category-performance.png"><img src="assets/ming-image-0.2-design-aa-category-performance-preview.svg" width="49%" alt="Ming-Image-0.2-Design category performance"></a><br>
+      <a href="assets/ming-image-0.2-design-aa-t2i-leaderboard.webp"><img src="assets/ming-image-0.2-design-aa-t2i-leaderboard-preview.webp" width="49%" alt="Ming-Image-0.2-Design AA-Image-T2I v2.1 leaderboard"></a>
+      <a href="assets/ming-image-0.2-design-aa-category-performance.webp"><img src="assets/ming-image-0.2-design-aa-category-performance-preview.webp" width="49%" alt="Ming-Image-0.2-Design category performance"></a><br>
       <sub>Evaluated as <code>Ming-Image-0.1-Design-high-AA</code> in November 2026. Click either image to view it at full size.</sub>
     </td>
   </tr>
@@ -46,7 +46,7 @@ designs into independently editable transparent layers.
 ### Ming-Image-0.2-Design
 
 <p>
-  <a href="assets/model_cards/ming-image-0.2-design-web-design.png"><img src="assets/model_cards/ming-image-0.2-design-web-design.png" width="100%" alt="Ming-Image-0.2-Design museum website with multiple content sections and a cohesive visual style"></a>
+  <a href="assets/model_cards/ming-image-0.2-design-web-design.webp"><img src="assets/model_cards/ming-image-0.2-design-web-design.webp" width="100%" alt="Ming-Image-0.2-Design museum website with multiple content sections and a cohesive visual style"></a>
 </p>
 
 <p>
