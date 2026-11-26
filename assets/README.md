@@ -19,9 +19,11 @@ README and runnable demos.
 - [`model_cards/`](./model_cards/) contains the image-only showcases used on
   the Design and Layer model pages, including the Layer gallery and
   performance result.
-- [`model_cards/ming-image-0.2-design-ecommerce.jpg`](./model_cards/ming-image-0.2-design-ecommerce.jpg)
-  and [`model_cards/ming-image-0.2-design-web-design.webp`](./model_cards/ming-image-0.2-design-web-design.webp)
-  are the e-commerce and web-design examples in the 0.2 Design gallery.
+- [`model_cards/ming-image-0.2-design-ecommerce.webp`](./model_cards/ming-image-0.2-design-ecommerce.webp),
+  [`model_cards/ming-image-0.2-design-web-design.webp`](./model_cards/ming-image-0.2-design-web-design.webp),
+  and [`model_cards/ming-image-0.2-design-spatial-design.webp`](./model_cards/ming-image-0.2-design-spatial-design.webp)
+  are animated slideshows of e-commerce, web, and spatial design examples
+  in the 0.2 Design gallery.
 - [`t2i_samples/`](./t2i_samples/) contains text-to-image examples. Its
   `transparent_rgba/` subdirectory contains examples with an alpha channel.
 - [`layer_samples/`](./layer_samples/) contains the input, layer specification,

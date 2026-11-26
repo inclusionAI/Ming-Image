@@ -45,27 +45,23 @@ designs into independently editable transparent layers.
 
 ### Ming-Image-0.2-Design
 
-<p>
-  <a href="assets/model_cards/ming-image-0.2-design-web-design.webp"><img src="assets/model_cards/ming-image-0.2-design-web-design.webp" width="100%" alt="Ming-Image-0.2-Design museum website with multiple content sections and a cohesive visual style"></a>
-</p>
-
-<p>
-  <a href="assets/model_cards/ming-image-0.2-design-ecommerce.jpg"><img src="assets/model_cards/ming-image-0.2-design-ecommerce.jpg" align="left" width="420" hspace="24" alt="Ming-Image-0.2-Design e-commerce hero visual featuring a skincare product, detailed materials, and clear product labeling"></a>
-</p>
-
-<p>
-  <strong>↑ Web design</strong><br>
-  Multi-section layouts and a cohesive visual style.
-</p>
-
-<br><br><br>
-
-<p>
-  <strong>← E-commerce hero visuals</strong><br>
+<p align="center">
+  <a href="assets/model_cards/ming-image-0.2-design-ecommerce.webp"><img src="assets/model_cards/ming-image-0.2-design-ecommerce.webp" width="75%" alt="Ming-Image-0.2-Design e-commerce hero visuals slideshow"></a><br>
+  <strong>E-commerce hero visuals</strong><br>
   Fine material detail and clear product information.
 </p>
 
-<br clear="all">
+<p align="center">
+  <a href="assets/model_cards/ming-image-0.2-design-web-design.webp"><img src="assets/model_cards/ming-image-0.2-design-web-design.webp" width="75%" alt="Ming-Image-0.2-Design web design slideshow"></a><br>
+  <strong>Web design</strong><br>
+  Multi-section layouts and a cohesive visual style.
+</p>
+
+<p align="center">
+  <a href="assets/model_cards/ming-image-0.2-design-spatial-design.webp"><img src="assets/model_cards/ming-image-0.2-design-spatial-design.webp" width="75%" alt="Ming-Image-0.2-Design spatial design slideshow"></a><br>
+  <strong>Spatial design</strong><br>
+  Harmonizing structure, light, and shadow in complex scenes.
+</p>
 
 ### Ming-Image-0.1-Design and -Layer Models
 
