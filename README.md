@@ -27,8 +27,6 @@ designs into independently editable transparent layers.
       <strong>#1 among open-weight models overall</strong><br>
       <sub>As of Nov 25, 2026 · AA-Image-T2I v2.1</sub><br>
       <a href="assets/ming-image-0.2-design-aa-t2i-leaderboard.webp"><img src="assets/ming-image-0.2-design-aa-t2i-leaderboard-preview.webp" width="49%" alt="Ming-Image-0.2-Design ranked first on the AA-Image-T2I v2.1 overall open-weights leaderboard"></a>
-      <a href="assets/ming-image-0.2-design-aa-category-performance.webp"><img src="assets/ming-image-0.2-design-aa-category-performance-preview.webp" width="49%" alt="Ming-Image-0.2-Design category performance"></a><br>
-      <sub>The category figure (right) uses the November 2026 evaluation name <code>Ming-Image-0.1-Design-high-AA</code>. Click either image to view it at full size.</sub>
     </td>
   </tr>
   <tr>

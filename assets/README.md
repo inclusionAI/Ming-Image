@@ -7,15 +7,11 @@ README and runnable demos.
 
 - [`ming-image-0.2-design-aa-t2i-leaderboard.webp`](./ming-image-0.2-design-aa-t2i-leaderboard.webp)
   is the AA-Image-T2I v2.1 overall open-weights leaderboard for 0.2 Design.
-- [`ming-image-0.2-design-aa-category-performance.webp`](./ming-image-0.2-design-aa-category-performance.webp)
-  shows the same model's category ranks and Elo gaps to category leaders.
-  This category figure uses the evaluation name `Ming-Image-0.1-Design-high-AA` for
-  0.2 Design.
-- The corresponding `*-preview.webp` assets display the two 0.2 leaderboard
-  figures in matching frames without stretching; each links to the full-resolution figure.
+- [`ming-image-0.2-design-aa-t2i-leaderboard-preview.webp`](./ming-image-0.2-design-aa-t2i-leaderboard-preview.webp)
+  is the preview used in the README, where it links to the full-resolution figure.
 - [`ming-image-design-ui-ux-leaderboard.webp`](./ming-image-design-ui-ux-leaderboard.webp)
   is the historical 0.1 Design UI/UX leaderboard, displayed alongside the 0.2
-  figures in the main README's image table.
+  figure in the main README's image table.
 - [`model_cards/`](./model_cards/) contains the image-only showcases used on
   the Design and Layer model pages, including the Layer gallery and
   performance result.
