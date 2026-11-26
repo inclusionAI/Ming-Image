@@ -6,10 +6,10 @@ README and runnable demos.
 ## Contents
 
 - [`ming-image-0.2-design-aa-t2i-leaderboard.webp`](./ming-image-0.2-design-aa-t2i-leaderboard.webp)
-  is the November 2026 preliminary AA-Image-T2I v2.1 leaderboard for 0.2 Design.
+  is the AA-Image-T2I v2.1 overall open-weights leaderboard for 0.2 Design.
 - [`ming-image-0.2-design-aa-category-performance.webp`](./ming-image-0.2-design-aa-category-performance.webp)
   shows the same model's category ranks and Elo gaps to category leaders.
-  The figures use the evaluation name `Ming-Image-0.1-Design-high-AA` for
+  This category figure uses the evaluation name `Ming-Image-0.1-Design-high-AA` for
   0.2 Design.
 - The corresponding `*-preview.webp` assets display the two 0.2 leaderboard
   figures in matching frames without stretching; each links to the full-resolution figure.
